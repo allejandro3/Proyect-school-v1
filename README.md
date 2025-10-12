@@ -56,7 +56,7 @@ A comprehensive web-based school management system built with Node.js backend an
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/allejandro3/Proyect-school-v1.git
    cd school-management-system
    ```
 
