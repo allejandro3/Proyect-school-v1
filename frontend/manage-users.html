@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Usuarios</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .actions-cell button {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .page-actions {
+            margin-bottom: 20px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .delete-button { background-color: #dc3545; margin-top: 10px; }
+        .delete-button:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestionar Usuarios y Roles</h1>
+        <div class="page-actions">
+            <button id="manageUserButton">Modificar Usuario</button>
+        </div>
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <!-- Los datos de los usuarios se cargarán aquí -->
+            </tbody>
+        </table>
+        <p id="loadingMessage">Cargando usuarios...</p>
+        <a href="super-admin.html" class="back-link">‹ Volver al panel de Super Administrador</a>
+    </div>
+
+    <!-- El Modal para Editar -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Modificar Usuario y Roles</h3>
+            <form id="editUserForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="userSelect">Seleccionar Usuario:</label>
+                    <select id="userSelect" name="cedula" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="newRole">Nuevo Rol:</label>
+                    <select id="newRole" name="role">
+                        <option value="estudiante">Estudiante</option>
+                        <option value="user">Usuario</option>
+                        <option value="admin">Administrador</option>
+                        <option value="super-admin">Super Administrador</option>
+                    </select>
+                </div>
+                <button type="submit" id="saveChangesButton">Guardar Cambios</button>
+                <button type="button" id="deleteUserButton" class="delete-button">Eliminar Usuario</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Verificación de Seguridad ---
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userDataString = sessionStorage.getItem('userData');
+
+            if (!isLoggedIn || !userDataString) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const userData = JSON.parse(userDataString);
+
+            // Normalize helper: returns array of role strings (lowercased, trimmed)
+            function extractRoles(u) {
+                if (!u) return [];
+                // If explicit role property
+                if (u.role) {
+                    if (Array.isArray(u.role)) return u.role.map(r => String(r).trim().toLowerCase());
+                    return [String(u.role).trim().toLowerCase()];
+                }
+                // If booleans like isSuper, is_superadmin, is_super
+                const boolRoles = [];
+                if (u.isSuper || u.is_super || u.is_superadmin || u.isSuperAdmin || u.is_super_admin) boolRoles.push('super-admin');
+                if (u.isAdmin || u.is_admin) boolRoles.push('admin');
+                // If roles array
+                if (u.roles && Array.isArray(u.roles)) {
+                    return u.roles.map(r => String(r).trim().toLowerCase()).concat(boolRoles);
+                }
+                return boolRoles;
+            }
+
+            const roles = extractRoles(userData);
+            // Also check username/email patterns (edge case)
+            const username = (userData.username || '').toString().trim().toLowerCase();
+
+            // Consider also plain role strings at top-level (e.g., userData === 'super-admin')
+            let raw = '';
+            if (typeof userData === 'string') raw = userData.trim().toLowerCase();
+            if (!raw && userData.role) raw = String(userData.role).trim().toLowerCase();
+
+            // Check common variations: superadmin, super-admin, super_admin, super admin
+            const roleMatchesSuperAdmin = roles.some(r => /super[-_\s]?admin/.test(r))
+                || /super[-_\s]?admin/.test(raw)
+                || /super[-_\s]?admin/.test(username)
+                || roles.includes('director')
+                || raw === 'director';
+
+            console.log('Extracted roles:', roles, 'raw:', raw, 'username:', username, 'isSuperAdmin:', roleMatchesSuperAdmin);
+
+            if (!roleMatchesSuperAdmin) {
+                alert('Acceso denegado. Solo los super-administradores pueden ver esta página.');
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            const usersTableBody = document.getElementById('usersTableBody');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const manageUserButton = document.getElementById('manageUserButton');
+            const editUserModal = document.getElementById('editUserModal');
+            const closeButton = editUserModal.querySelector('.close-button');
+            const editUserForm = document.getElementById('editUserForm');
+            const userSelect = document.getElementById('userSelect');
+            const newRole = document.getElementById('newRole');
+            const saveChangesButton = document.getElementById('saveChangesButton');
+            const deleteUserButton = document.getElementById('deleteUserButton');
+
+            let usersData = []; // Para almacenar los datos de los usuarios
+
+            // --- Cargar y Mostrar Usuarios ---
+            async function fetchUsers() {
+                usersTableBody.innerHTML = '';
+                loadingMessage.style.display = 'block';
+                loadingMessage.textContent = 'Cargando usuarios...';
+
+                try {
+                    const response = await fetch('/api/users'); 
+                    if (!response.ok) {
+                        throw new Error(`Error al cargar usuarios: ${response.statusText}`);
+                    }
+                    const users = await response.json();
+                    usersData = users; // Guardar datos globalmente
+
+                    if (users.length === 0) {
+                        loadingMessage.textContent = 'No se encontraron usuarios.';
+                        manageUserButton.disabled = true;
+                        return;
+                    }
+
+                    loadingMessage.style.display = 'none';
+                    manageUserButton.disabled = false;
+                    usersTableBody.innerHTML = '';
+                    userSelect.innerHTML = '<option value="">-- Seleccione un usuario --</option>';
+
+                    users.forEach(user => {
+                        // Poblar la tabla
+                        const row = usersTableBody.insertRow();
+                        row.innerHTML = `
+                            <td>${user.nombre}</td>
+                            <td>${user.email}</td>
+                            <td>${user.role}</td>
+                        `;
+
+                        // Poblar el dropdown del modal
+                        const option = document.createElement('option');
+                        option.value = user.cedula;
+                        option.textContent = `${user.nombre} (${user.email})`;
+                        userSelect.appendChild(option);
+                    });
+
+                } catch (error) {
+                    loadingMessage.textContent = `Error: ${error.message}`;
+                }
+            }
+
+            // --- Lógica del Modal ---
+            manageUserButton.addEventListener('click', () => {
+                editUserForm.reset();
+                saveChangesButton.disabled = true;
+                deleteUserButton.disabled = true;
+                editUserModal.style.display = 'block';
+            });
+
+            closeButton.addEventListener('click', () => editUserModal.style.display = 'none');
+            window.addEventListener('click', (event) => {
+                if (event.target == editUserModal) editUserModal.style.display = 'none';
+            });
+
+            userSelect.addEventListener('change', () => {
+                const selectedCedula = userSelect.value;
+                if (!selectedCedula) {
+                    editUserForm.reset();
+                    saveChangesButton.disabled = true;
+                    deleteUserButton.disabled = true;
+                    return;
+                }
+
+                const selectedUser = usersData.find(u => u.cedula === selectedCedula);
+                if (selectedUser) {
+                    newRole.value = selectedUser.role;
+                }
+
+                const isSelf = userData.cedula === selectedCedula;
+                saveChangesButton.disabled = isSelf;
+                deleteUserButton.disabled = isSelf;
+                saveChangesButton.title = isSelf ? "No puede modificar su propia cuenta." : "";
+                deleteUserButton.title = isSelf ? "No puede eliminar su propia cuenta." : "";
+            });
+
+            saveChangesButton.addEventListener('click', async () => {
+                const cedula = userSelect.value;
+                const role = newRole.value;
+
+                try {
+                    const response = await fetch(`/api/users/${cedula}/role`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Error al actualizar el rol.');
+                    }
+
+                    alert('Rol de usuario actualizado exitosamente.');
+                    editUserModal.style.display = 'none';
+                    fetchUsers();
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            });
+
+            deleteUserButton.addEventListener('click', async () => {
+                const cedula = userSelect.value;
+                if (!cedula) return;
+
+                if (confirm(`¿Está seguro de que desea ELIMINAR PERMANENTEMENTE al usuario con cédula ${cedula}? Esta acción no se puede deshacer.`)) {
+                    try {
+                        const response = await fetch(`/api/users/${cedula}`, {
+                            method: 'DELETE',
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Error al eliminar usuario.');
+                        }
+
+                        alert('Usuario eliminado exitosamente.');
+                        editUserModal.style.display = 'none';
+                        fetchUsers();
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
+                    }
+                }
+            });
+
+            fetchUsers();
+        });
+    </script>
+</body>
+</html>

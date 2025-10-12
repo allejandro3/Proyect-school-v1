@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Grado para Boletines (Super Admin)</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Generar Boletines</h2>
+        <p>Introduce el grado para el cual quieres generar los boletines.</p>
+
+        <form id="selectGradeForm">
+            <div class="form-group">
+                <input type="text" id="grado" name="grado" required placeholder="Ej: Primaria, Preescolar">
+            </div>
+            <button type="submit">Generar</button>
+        </form>
+
+        <br>
+        <a href="super-admin.html">‹ Volver al panel de Super Administrador</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Verificación de seguridad ---
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userDataString = sessionStorage.getItem('userData');
+
+            if (!isLoggedIn || !userDataString) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const userData = JSON.parse(userDataString);
+
+            // Normalize helper: returns array of role strings (lowercased, trimmed)
+            function extractRoles(u) {
+                if (!u) return [];
+                // If explicit role property
+                if (u.role) {
+                    if (Array.isArray(u.role)) return u.role.map(r => String(r).trim().toLowerCase());
+                    return [String(u.role).trim().toLowerCase()];
+                }
+                // If booleans like isSuper, is_superadmin, is_super
+                const boolRoles = [];
+                if (u.isSuper || u.is_super || u.is_superadmin || u.isSuperAdmin || u.is_super_admin) boolRoles.push('super-admin');
+                if (u.isAdmin || u.is_admin) boolRoles.push('admin');
+                // If roles array
+                if (u.roles && Array.isArray(u.roles)) {
+                    return u.roles.map(r => String(r).trim().toLowerCase()).concat(boolRoles);
+                }
+                return boolRoles;
+            }
+
+            const roles = extractRoles(userData);
+            // Also check username/email patterns (edge case)
+            const username = (userData.username || '').toString().trim().toLowerCase();
+
+            // Consider also plain role strings at top-level (e.g., userData === 'super-admin')
+            let raw = '';
+            if (typeof userData === 'string') raw = userData.trim().toLowerCase();
+            if (!raw && userData.role) raw = String(userData.role).trim().toLowerCase();
+
+            // Check common variations: superadmin, super-admin, super_admin, super admin
+            const roleMatchesSuperAdmin = roles.some(r => /super[-_\s]?admin/.test(r))
+                || /super[-_\s]?admin/.test(raw)
+                || /super[-_\s]?admin/.test(username)
+                || roles.includes('director')
+                || raw === 'director';
+
+            console.log('Extracted roles:', roles, 'raw:', raw, 'username:', username, 'isSuperAdmin:', roleMatchesSuperAdmin);
+
+            // Role-based redirection for super-admin
+            if (!roleMatchesSuperAdmin) {
+                window.location.href = 'admin.html'; // Redirect to admin page if not super-admin
+                return;
+            }
+
+            console.log('select-grade-super-admin.html - User Data Role:', userData.role);
+
+
+            // --- Lógica del formulario ---
+            document.getElementById('selectGradeForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const grado = document.getElementById('grado').value;
+                if (grado) {
+                    const queryParams = new URLSearchParams({ grado });
+                    window.location.href = `view-boletines-super-admin.html?${queryParams.toString()}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

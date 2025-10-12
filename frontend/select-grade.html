@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Grado para Boletines</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #currentUserDisplay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="currentUserDisplay"></div>
+    <div class="container">
+        <h2>Generar Boletines</h2>
+        <p>Introduce el grado para el cual quieres generar los boletines.</p>
+        <div id="userInfo"></div>
+
+        <form id="selectGradeForm">
+            <div class="form-group">
+                <label for="grado">Grado</label>
+                <input type="text" id="grado" name="grado" required placeholder="Ej: Primaria, Preescolar">
+            </div>
+            <button type="submit">Generar</button>
+        </form>
+
+        <br>
+        <a href="admin.html">‹ Volver al panel</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Verificación de seguridad ---
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'index.html';
+                return;
+            }
+            const userDataString = sessionStorage.getItem('userData');
+            const userData = JSON.parse(userDataString);
+            console.log('select-grade.html - User Data Role:', userData.role);
+            const currentUserDisplay = document.getElementById('currentUserDisplay');
+
+            // Mostrar el nombre de usuario en la esquina superior derecha
+            if (currentUserDisplay) {
+                currentUserDisplay.textContent = `Usuario: ${userData.username}`;
+            }
+
+            document.getElementById('userInfo').innerHTML = `<p><strong>Administrador:</strong> ${userData.username}</p>`;
+
+
+            // --- Lógica del formulario ---
+            document.getElementById('selectGradeForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const grado = document.getElementById('grado').value;
+                if (grado) {
+                    const queryParams = new URLSearchParams({ grado });
+                    window.location.href = `view-boletines.html?${queryParams.toString()}`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

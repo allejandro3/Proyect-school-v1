@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Notas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .button-link {
+            display: inline-block; /* Allows setting padding, etc. */
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff; /* Blue, similar to other buttons */
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none; /* Remove underline */
+            transition: background-color 0.2s;
+            margin-bottom: 2px; /* Add some space below it */
+        }
+        .button-link:hover {
+            background-color: #0056b3;
+        }
+
+        .controls { margin-bottom: 20px; }
+        .controls button { margin-right: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 900px; }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        #averageContainer { margin-top: 20px; text-align: right; font-size: 1.2rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container container-wide">
+        <h2>Editar Notas</h2>
+        <div id="userInfo"></div>
+        <a href="super-admin.html" class="button-link">‹ Volver al filtro</a>
+
+        <div class="controls">
+            <button id="modifyButton">Modificar Notas</button>
+        </div>
+
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Tarjeta de Identidad</th>
+                    <th>Estudiante</th>
+                    <th>Grado</th>
+                    <th>Materia</th>
+                    <th>Logros</th>
+                    <th>I.H</th>
+                    <th>J.V</th>
+                    <th>Desempeño</th>
+                </tr>
+            </thead>
+            <tbody id="gradesTableBody">
+                <!-- Las filas de datos se insertarán aquí dinámicamente -->
+            </tbody>
+        </table>
+
+        <div id="averageContainer">
+            <!-- El promedio se insertará aquí -->
+        </div>
+
+        <br>
+        <br>
+    </div>
+
+    <!-- El Modal para Editar -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Modificar Registro de Nota</h3>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="recordIdSelect">Seleccionar Cédula del Estudiante a Modificar:</label>
+                    <select id="recordIdSelect" name="cedula" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="student_name">Nombre del Estudiante</label>
+                    <input type="text" id="student_name" name="student_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="grado">Grado (Nivel del Curso)</label>
+                    <input type="text" id="grado" name="grado" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Materia</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="logros">Logros</label>
+                    <textarea id="logros" name="logros" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="I_H">Intensidad Horaria (I.H)</label>
+                    <input type="text" id="I_H" name="I_H">
+                </div>
+                <div class="form-group">
+                    <label for="J_V">Juicio Valorativo (J.V)</label>
+                    <input type="text" id="J_V" name="J_V">
+                </div>
+                <button type="submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userInfoDiv = document.getElementById('userInfo');
+            const gradesTableBody = document.getElementById('gradesTableBody');
+            const modifyButton = document.getElementById('modifyButton');
+            const editModal = document.getElementById('editModal');
+            const closeButton = document.querySelector('.close-button');
+            const editForm = document.getElementById('editForm');
+            const recordIdSelect = document.getElementById('recordIdSelect');
+            const averageContainer = document.getElementById('averageContainer');
+            let recordsData = [];
+
+            // --- Verificación de seguridad ---
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userDataString = sessionStorage.getItem('userData');
+            if (!isLoggedIn || !userDataString) {
+                window.location.href = 'index.html';
+                return;
+            }
+            const userData = JSON.parse(userDataString);
+            userInfoDiv.innerHTML = `<p><strong>Administrador:</strong> ${userData.username}</p>`;
+
+            // --- Lógica de la página ---
+            function getDesempeno(jv) {
+                const jv_num = parseFloat(jv);
+                if (isNaN(jv_num)) return '';
+                if (jv_num >= 0 && jv_num <= 1.9) return 'Inferior';
+                if (jv_num >= 2.0 && jv_num <= 2.9) return 'Bajo';
+                if (jv_num >= 3.0 && jv_num <= 3.9) return 'Básico';
+                if (jv_num >= 4.0 && jv_num <= 4.6) return 'Alto';
+                if (jv_num >= 4.7 && jv_num <= 5.0) return 'Superior';
+                return ''; // Default case
+            }
+
+            async function fetchAndDisplayGrades() {
+                const params = new URLSearchParams(window.location.search);
+                const subject = params.get('subject');
+                const grado = params.get('grado');
+
+                // Actualizar título para mostrar los filtros aplicados
+                document.querySelector('h2').textContent += ` (Materia: ${subject}, Grado: ${grado})`;
+
+                try {
+                    const response = await fetch(`/api/student-records?subject=${encodeURIComponent(subject)}&grado=${encodeURIComponent(grado)}`);
+                    if (!response.ok) throw new Error('Error al cargar los datos.');
+                    recordsData = await response.json();
+                    console.log('fetchAndDisplayGrades - recordsData:', recordsData);
+
+                    gradesTableBody.innerHTML = '';
+                    recordIdSelect.innerHTML = '<option value="">-- Seleccione un ID --</option>';
+                    averageContainer.innerHTML = ''; // Limpiar promedio anterior
+
+                    if (recordsData.length === 0) {
+                        gradesTableBody.innerHTML = '<tr><td colspan="8">No se encontraron registros con esos filtros.</td></tr>';
+                        return;
+                    }
+
+                    let totalJ_V = 0;
+                    let countJ_V = 0;
+
+                    recordsData.forEach(record => {
+                        const row = document.createElement('tr');
+                        const desempeno = getDesempeno(record.J_V);
+                        // Keep the header 'Tarjeta de Identidad' but remove the numeric record.id cell
+                        // Use fallback for grado in case the backend uses a different key
+                        const gradoValue = record.grado ?? record.grade ?? '';
+                        const subjectValue = record.subject ?? record.materia ?? '';
+                        row.innerHTML = `
+                            <td>${record.targeta_identidad}</td>
+                            <td>${record.student_name}</td>
+                            <td>${gradoValue}</td>
+                            <td>${subjectValue}</td>
+                            <td>${record.logros || ''}</td>
+                            <td>${record.I_H || ''}</td>
+                            <td>${record.J_V || ''}</td>
+                            <td>${desempeno}</td>
+                        `;
+                        gradesTableBody.appendChild(row);
+
+                        const option = document.createElement('option');
+                        // Show the student's cedula (targeta_identidad) in the select, but keep the internal id
+                        option.value = record.targeta_identidad;
+                        option.textContent = record.targeta_identidad;
+                        option.dataset.recordId = record.id;
+                        recordIdSelect.appendChild(option);
+
+                        // Sumar para el promedio
+                        const jv_num = parseFloat(record.J_V);
+                        if (!isNaN(jv_num)) {
+                            totalJ_V += jv_num;
+                            countJ_V++;
+                        }
+                    });
+
+                    // Calcular y mostrar el promedio
+                    if (countJ_V > 0) {
+                        const average = totalJ_V / countJ_V;
+                        averageContainer.innerHTML = `<span>Promedio General: ${average.toFixed(2)}</span>`;
+                    }
+
+                } catch (error) {
+                    gradesTableBody.innerHTML = `<tr><td colspan="8">${error.message}</td></tr>`;
+                }
+            }
+
+            // --- Event Listeners ---
+            modifyButton.addEventListener('click', () => {
+                if(recordsData.length === 0) {
+                    alert("No hay registros para modificar.");
+                    return;
+                }
+                editModal.style.display = 'block';
+            });
+
+            closeButton.addEventListener('click', () => editModal.style.display = 'none');
+            window.addEventListener('click', (event) => {
+                if (event.target == editModal) editModal.style.display = 'none';
+            });
+
+            recordIdSelect.addEventListener('change', (e) => {
+                const selectedCedula = e.target.value;
+                if (!selectedCedula) {
+                    editForm.reset();
+                    return;
+                }
+                const selectedRecord = recordsData.find(r => r.targeta_identidad == selectedCedula);
+                if (selectedRecord) {
+                    document.getElementById('student_name').value = selectedRecord.student_name;
+                    // Fallback if backend uses 'grade' instead of 'grado'
+                    document.getElementById('grado').value = selectedRecord.grado ?? selectedRecord.grade ?? '';
+                    document.getElementById('subject').value = selectedRecord.subject;
+                    document.getElementById('logros').value = selectedRecord.logros || '';
+                    document.getElementById('I_H').value = selectedRecord.I_H || '';
+                    document.getElementById('J_V').value = selectedRecord.J_V || '';
+                }
+            });
+
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const cedula = recordIdSelect.value;
+                if (!cedula) {
+                    alert('Por favor, seleccione una cédula de registro para modificar.');
+                    return;
+                }
+
+                // Use the stored internal record id for the PUT endpoint
+                const selectedOption = recordIdSelect.selectedOptions[0];
+                const recordId = selectedOption ? selectedOption.dataset.recordId : null;
+                if (!recordId) {
+                    alert('No se pudo determinar el ID interno del registro seleccionado.');
+                    return;
+                }
+
+                // Only send the fields the server expects for updating `logros`.
+                const updatedData = {
+                    grado: document.getElementById('grado').value,
+                    logros: document.getElementById('logros').value,
+                    I_H: document.getElementById('I_H').value,
+                    J_V: document.getElementById('J_V').value
+                };
+                // Include subject (materia name) only if provided (server will resolve materia_id)
+                const subjectVal = document.getElementById('subject').value;
+                if (subjectVal) updatedData.subject = subjectVal;
+
+                try {
+                    const response = await fetch(`/api/student-records/${recordId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedData)
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                        // If server returned a message, show it; otherwise show generic
+                        const msg = result && result.message ? result.message : 'Error en el servidor al actualizar el registro.';
+                        throw new Error(msg);
+                    }
+
+                    alert(result.message || 'Registro actualizado exitosamente.');
+                    editModal.style.display = 'none';
+                    fetchAndDisplayGrades(); // Recargar la tabla
+                } catch (error) {
+                    alert(`Error al guardar los cambios: ${error.message}`);
+                }
+            });
+
+            fetchAndDisplayGrades();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Super Administrador</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .top-left-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background-color: #dc3545; /* Red for logout */
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+            z-index: 1000; /* Ensure it's on top */
+            width: auto; /* Override 100% width from styles.css */
+        }
+        .top-left-button:hover {
+            background-color: #c82333;
+        }
+        #currentUserDisplay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        /* Compact styles for smaller panel */
+        .container {
+            max-width: 500px; /* Make narrower */
+            margin: 0 auto;
+            padding: 1rem; /* Reduce padding */
+        }
+        h2 {
+            font-size: 1.2rem; /* Smaller headings */
+            margin: 1rem 0 0.5rem;
+        }
+        p {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .form-group {
+            margin-bottom: 0.8rem; /* Tighter spacing */
+        }
+        .form-group label {
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            padding: 0.4rem; /* Smaller inputs */
+            font-size: 0.9rem;
+        }
+        button {
+            padding: 0.4rem 0.8rem; /* Smaller buttons */
+            font-size: 0.9rem;
+        }
+        hr {
+            margin: 1rem 0; /* Smaller HR margins */
+        }
+    </style>
+</head>
+<body>
+    <div id="currentUserDisplay"></div>
+    <button id="logoutButton" class="top-left-button">Cerrar Sesión</button>
+    <div class="container">
+
+        <hr style="margin: 2rem 0;">
+
+        <h2>Filtrar Registros de Notas</h2>
+        <p>Introduce la materia y el grado para encontrar los registros que quieres modificar.</p>
+        <form id="filterForm">
+            <div class="form-group">
+                <label for="subject">Materia</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+            <div class="form-group">
+                <label for="grado">Grado (Nivel del Curso)</label>
+                <input type="text" id="grado" name="grado" required>
+            </div>
+            <button type="submit">Buscar Estudiantes</button>
+        </form>
+
+        <hr style="margin: 2rem 0;">
+
+        <h2>Generar Boletines</h2>
+        <form id="boletinForm">
+            <button type="submit">Generar Boletines por Grado</button>
+        </form>
+
+        <hr style="margin: 2rem 0;">
+
+
+        <h2>Gestión de Usuarios y Roles</h2>
+        <p>Ver, agregar, editar y eliminar usuarios y asignar roles desde un panel centralizado.</p>
+        <button onclick="window.location.href='manage-users.html'">Gestionar Usuarios</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userDataString = sessionStorage.getItem('userData');
+
+            if (!isLoggedIn || !userDataString) {
+                window.location.href = 'index.html';
+                return;
+            }
+            const userData = JSON.parse(userDataString);
+            const currentUserDisplay = document.getElementById('currentUserDisplay');
+
+            // Mostrar el nombre de usuario en la esquina superior derecha
+            
+
+            // --- Mejor detección de rol (normalización) ---
+            // Añadimos logging para depuración y aceptamos varias formas de 'super admin'
+            try {
+                console.log('userData from sessionStorage:', userData);
+            } catch (e) {
+                console.log('No se pudo parsear userData para logging');
+            }
+
+            // Normalize helper: returns array of role strings (lowercased, trimmed)
+            function extractRoles(u) {
+                if (!u) return [];
+                // If explicit role property
+                if (u.role) {
+                    if (Array.isArray(u.role)) return u.role.map(r => String(r).trim().toLowerCase());
+                    return [String(u.role).trim().toLowerCase()];
+                }
+                // If booleans like isSuper, is_superadmin, is_super
+                const boolRoles = [];
+                if (u.isSuper || u.is_super || u.is_superadmin || u.isSuperAdmin || u.is_super_admin) boolRoles.push('super-admin');
+                if (u.isAdmin || u.is_admin) boolRoles.push('admin');
+                // If roles array
+                if (u.roles && Array.isArray(u.roles)) {
+                    return u.roles.map(r => String(r).trim().toLowerCase()).concat(boolRoles);
+                }
+                return boolRoles;
+            }
+
+            const roles = extractRoles(userData);
+            // Also check username/email patterns (edge case)
+            const username = (userData.username || '').toString().trim().toLowerCase();
+
+            // Consider also plain role strings at top-level (e.g., userData === 'super-admin')
+            let raw = '';
+            if (typeof userData === 'string') raw = userData.trim().toLowerCase();
+            if (!raw && userData.role) raw = String(userData.role).trim().toLowerCase();
+
+            // Check common variations: superadmin, super-admin, super_admin, super admin
+            const roleMatchesSuperAdmin = roles.some(r => /super[-_\s]?admin/.test(r))
+                || /super[-_\s]?admin/.test(raw)
+                || /super[-_\s]?admin/.test(username)
+                || roles.includes('director')
+                || raw === 'director';
+
+            console.log('Extracted roles:', roles, 'raw:', raw, 'username:', username, 'isSuperAdmin:', roleMatchesSuperAdmin);
+
+            if (!roleMatchesSuperAdmin) {
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            // --- Lógica del formulario de filtro ---
+            document.getElementById('filterForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const subject = document.getElementById('subject').value;
+                const grado = document.getElementById('grado').value;
+
+                const queryParams = new URLSearchParams({ subject, grado });
+                window.location.href = `edit-grades.html?${queryParams.toString()}`;
+            });
+
+            // --- Lógica para generar boletines ---
+            document.getElementById('boletinForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                window.location.href = 'select-grade-super-admin.html';
+            });
+
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('userData');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>

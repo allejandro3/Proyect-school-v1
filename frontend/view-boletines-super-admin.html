@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boletines (Super Admin)</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    /* Fecha de impresión arriba a la derecha solo en print */
+    .fecha-impresion-print {
+        display: none;
+        font-size: 11pt;
+        color: #222;
+        text-align: right;
+        margin-bottom: 2px;
+    }
+        .top-left-button {
+            position: relative;
+            background-color: #1976d2; /* azul moderno */
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(25, 118, 210, 0.12);
+            transition: background-color 0.15s;
+            z-index: 1000;
+            margin-left: 6px;
+        }
+            .top-left-button:hover { background-color: #f57c00; }
+            .top-left-button:hover { background-color: #f57c00; }
+
+        .container-wide {
+            margin: 0.6rem auto;
+            max-width: 185mm; /* un poco más largo */
+            padding: 16px 24px 18px 24px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(81, 47, 138, 0.08);
+            border-top: none;
+        }
+    /* Layout header as 3-column grid: left reserved for back button, middle for centered print button */
+    /* Increased left column to give the back button more breathing room from the page edge */
+    .top-header { display: grid; grid-template-columns: 110px 1fr 72px; align-items: center; margin: 18px 0 6px 0; }
+    .top-header .top-left-button { position: static; margin: 0 0 0 26px; }
+        .top-header .print-btn {
+            justify-self: center;
+            max-width: 60%;
+            background-color: #ff9800; /* naranja visible */
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.12);
+            transition: background-color 0.15s;
+        }
+        .top-header .print-btn:hover { background-color: #f57c00; }
+        body {
+            /* Override the flex centering for this page */
+            display: block;
+            height: auto;
+        }
+        .boletin {
+            background-color: #fff;
+            padding: 1.6rem 1.6rem 1.8rem 1.6rem;
+            margin: 1rem auto;
+            border: 1px solid #eee;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            border-radius: 6px;
+        }
+        .boletin-header {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-top: 6px;
+        }
+        .student-info {
+            margin-bottom: 1rem;
+            display: inline-block;
+            width: 100%;
+        }
+        .student-info p {
+            margin: 6px 0;
+            font-size: 0.98rem;
+        }
+        .grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .grades-table th, .grades-table td {
+            border: 1px solid #e0e0e0;
+            padding: 0.75rem 0.9rem;
+            text-align: left;
+            vertical-align: top;
+        }
+    /* Column widths: subject wider, logros slightly narrower */
+    .grades-table th:nth-child(1), .grades-table td:nth-child(1) { width: 26%; }
+    .grades-table th:nth-child(2), .grades-table td:nth-child(2) { width: 34%; }
+    .grades-table th:nth-child(3), .grades-table td:nth-child(3) { width: 12%; text-align: center; }
+    .grades-table th:nth-child(4), .grades-table td:nth-child(4) { width: 15%; text-align: center; }
+    .grades-table th:nth-child(5), .grades-table td:nth-child(5) { width: 30%; text-align: center; }
+        .grades-table th {
+            background-color: #f2f2f2;
+        }
+        .page-controls {
+            text-align: center;
+            margin: 6px 0 10px 0;
+        }
+        .page-controls .print-btn {
+            background: linear-gradient(90deg,#6f42c1,#8a63d9);
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(111,66,193,0.18);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .page-controls .print-btn:active { transform: translateY(1px); }
+        .desempeno-bajo { background-color: #ffdddd; }
+        .desempeno-basico { background-color: #fff2dd; }
+        .desempeno-alto { background-color: #ddffdd; }
+        .desempeno-superior { background-color: #d4edda; }
+        @media print {
+        .fecha-impresion-print {
+            display: block !important;
+            font-size: 14px;
+            color: #333;
+            margin: 0 0 8px 0;
+            text-align: right;
+        }
+        .boletin-header {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            position: relative;
+        }
+            body, .container-wide {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            .page-controls {
+                display: none;
+            }
+            .boletin {
+                margin: 0 0 2rem 0;
+                box-shadow: none;
+                border: none;
+                page-break-after: always;
+                page-break-before: always;
+            }
+            /* Hide any elements explicitly marked as no-print */
+            .no-print { display: none !important; }
+            /* Eliminar scroll en el contenedor de boletines al imprimir */
+            #boletines-container { max-height: none !important; overflow: visible !important; }
+            /* Improved print layout */
+            @page { size: A4; margin: 20mm; }
+            /* center the printable container and limit width */
+            .container-wide { max-width: 170mm; margin: 0 auto; padding: 0; }
+            .boletin { padding: 12mm; font-size: 12pt; margin: 12mm auto; }
+            .boletin-header { margin-bottom: 8px; }
+            .boletin-header h3 { margin: 0; font-size: 16pt; }
+            .student-info p { margin: 2px 0; font-size: 11pt; }
+            .grades-table th, .grades-table td { padding: 6px; font-size: 10pt; }
+            .grades-table td { vertical-align: middle; }
+            /* Avoid breaking a boletin across pages if possible */
+            .boletin { page-break-inside: avoid; }
+            /* Reduce table borders on print for a cleaner look */
+            .grades-table th, .grades-table td { border-color: #bbb; }
+            /* Reduce whitespace between rows when printing */
+            .grades-table td { line-height: 1.1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-header no-print">
+        <button id="backButtonBoletin" class="top-left-button">‹ Volver</button>
+        <button class="print-btn" onclick="window.print()">Imprimir Boletines</button>
+    </div>
+    <div class="container container-wide">
+        <div class="page-controls" aria-hidden="true"></div>
+        <div id="boletines-container" style="max-height: 70vh; overflow-y: auto;">
+            <!-- Los boletines se insertarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const boletinesContainer = document.getElementById('boletines-container');
+
+            // --- Verificación de seguridad ---
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            const userDataString = sessionStorage.getItem('userData');
+
+            if (!isLoggedIn || !userDataString) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const userData = JSON.parse(userDataString);
+
+            // Normalize helper: returns array of role strings (lowercased, trimmed)
+            function extractRoles(u) {
+                if (!u) return [];
+                // If explicit role property
+                if (u.role) {
+                    if (Array.isArray(u.role)) return u.role.map(r => String(r).trim().toLowerCase());
+                    return [String(u.role).trim().toLowerCase()];
+                }
+                // If booleans like isSuper, is_superadmin, is_super
+                const boolRoles = [];
+                if (u.isSuper || u.is_super || u.is_superadmin || u.isSuperAdmin || u.is_super_admin) boolRoles.push('super-admin');
+                if (u.isAdmin || u.is_admin) boolRoles.push('admin');
+                // If roles array
+                if (u.roles && Array.isArray(u.roles)) {
+                    return u.roles.map(r => String(r).trim().toLowerCase()).concat(boolRoles);
+                }
+                return boolRoles;
+            }
+
+            const roles = extractRoles(userData);
+            // Also check username/email patterns (edge case)
+            const username = (userData.username || '').toString().trim().toLowerCase();
+
+            // Consider also plain role strings at top-level (e.g., userData === 'super-admin')
+            let raw = '';
+            if (typeof userData === 'string') raw = userData.trim().toLowerCase();
+            if (!raw && userData.role) raw = String(userData.role).trim().toLowerCase();
+
+            // Check common variations: superadmin, super-admin, super_admin, super admin
+            const roleMatchesSuperAdmin = roles.some(r => /super[-_\s]?admin/.test(r))
+                || /super[-_\s]?admin/.test(raw)
+                || /super[-_\s]?admin/.test(username)
+                || roles.includes('director')
+                || raw === 'director';
+
+            console.log('Extracted roles:', roles, 'raw:', raw, 'username:', username, 'isSuperAdmin:', roleMatchesSuperAdmin);
+
+            // Role-based redirection for super-admin
+            if (!roleMatchesSuperAdmin) {
+                window.location.href = 'admin.html'; // Redirect to admin page if not super-admin
+                return;
+            }
+
+            console.log('view-boletines-super-admin.html - User Data Role:', userData.role);
+
+            // Fecha de impresión (formato local)
+            const fechaImpresion = new Date().toLocaleDateString('es-ES');
+
+            // Función para determinar el desempeño según la nueva lógica
+            function getDesempeno(jv) {
+                const jv_num = parseFloat(jv);
+                if (isNaN(jv_num)) return { nivel: '', clase: '' };
+
+                let nivel = '';
+                let clase = '';
+
+                if (jv_num >= 0 && jv_num <= 2.9) {
+                    nivel = 'Bajo';
+                    clase = 'desempeno-bajo';
+                } else if (jv_num >= 3.0 && jv_num <= 3.9) {
+                    nivel = 'Básico';
+                    clase = 'desempeno-basico';
+                } else if (jv_num >= 4.0 && jv_num <= 4.5) {
+                    nivel = 'Alto';
+                    clase = 'desempeno-alto';
+                } else if (jv_num >= 4.5 && jv_num <= 5.0) {
+                    nivel = 'Superior';
+                    clase = 'desempeno-superior';
+                }
+
+                return { nivel, clase };
+            }
+
+            async function fetchAndDisplayBoletines() {
+                const params = new URLSearchParams(window.location.search);
+                const grado = params.get('grado');
+                const cedula = params.get('cedula'); // Get cedula parameter
+
+                let apiUrl = '';
+                let titleText = 'Boletines';
+                let isSingleStudentView = false;
+
+                if (grado) {
+                    apiUrl = `/api/boletines/${encodeURIComponent(grado)}`;
+                    titleText = `Boletines - ${grado}`;
+                } else if (cedula) {
+                    apiUrl = `/api/boletin/${encodeURIComponent(cedula)}`; // New endpoint
+                    titleText = `Boletín - ${cedula}`;
+                    isSingleStudentView = true;
+                } else {
+                    boletinesContainer.innerHTML = '<p>No se ha especificado un grado ni una cédula. Por favor, vuelve a la página anterior.</p>';
+                    return;
+                }
+
+                // Keep a generic document title to avoid showing 'Boletín - <cedula>' in print preview
+                document.title = 'Boletines';
+
+                // Show/hide select grade link
+                const selectGradeLink = document.getElementById('selectGradeLink');
+                if (selectGradeLink) {
+                    selectGradeLink.style.display = grado ? 'inline' : 'none';
+                }
+
+                try {
+                    // CORRECCIÓN: Agregar la URL completa del servidor
+                    const response = await fetch(`http://localhost:3000${apiUrl}`);
+                    if (!response.ok) throw new Error('Error al cargar los datos de los boletines.');
+                    let studentsData = await response.json();
+
+                    if (studentsData.length === 0) {
+                        boletinesContainer.innerHTML = `<p>No se encontraron estudiantes para los filtros proporcionados.</p>`;
+                        return;
+                    }
+
+                    // If it's a single student view, ensure studentsData is an array containing that student
+                    if (isSingleStudentView && !Array.isArray(studentsData)) {
+                        studentsData = [studentsData];
+                    }
+
+                    // Calculate averages for all students (always calculate average for each student)
+                    let studentsToDisplay = studentsData.map(student => {
+                        let totalJ_V = 0;
+                        let countJ_V = 0;
+                        student.records.forEach(record => {
+                            const jv_num = parseFloat(record.J_V);
+                            if (!isNaN(jv_num)) {
+                                totalJ_V += jv_num;
+                                countJ_V++;
+                            }
+                        });
+                        const average = countJ_V > 0 ? (totalJ_V / countJ_V) : 0;
+                        return { ...student, average };
+                    });
+
+                    // Sort by average to determine rank (only if not single student view)
+                    if (!isSingleStudentView) {
+                        studentsToDisplay.sort((a, b) => b.average - a.average);
+                    }
+
+
+                    // Generate HTML with rank (or without if single student view)
+                    studentsToDisplay.forEach((student, index) => {
+                        console.log('Student object:', student); // Agregado para depuración del grado
+                        const boletinDiv = document.createElement('div');
+                        boletinDiv.className = 'boletin';
+
+                        let materiasHTML = '';
+                        student.records.forEach(record => {
+                            const desempeno = getDesempeno(record.J_V);
+                            materiasHTML += `
+                                <tr>
+                                    <td>${record.subject}</td>
+                                    <td>${record.logros || ''}</td>
+                                    <td style="text-align: center; font-weight: bold;">${record.I_H}h</td>
+                                    <td style="text-align: center; font-weight: bold;">${parseFloat(record.J_V).toFixed(2)}</td>
+                                    <td style="text-align: center; font-weight: bold; ${desempeno.clase ? 'background-color: ' + (desempeno.clase === 'desempeno-bajo' ? '#ffdddd' : desempeno.clase === 'desempeno-basico' ? '#fff2dd' : desempeno.clase === 'desempeno-alto' ? '#ddffdd' : '#d4edda') : ''}">${desempeno.nivel}</td>
+                                </tr>
+                            `;
+                        });
+
+                        const average = student.average ? student.average.toFixed(2) : '0.00'; // Use student.average if available
+                        const averageDesempeno = getDesempeno(average);
+                        let rankHTML = '';
+                        if (!isSingleStudentView) {
+                            const rank = index + 1;
+                            rankHTML = `
+                                <div style="text-align: left; margin-top: 1rem; font-weight: bold;">
+                                    Puesto en el Curso: ${rank}
+                                </div>
+                            `;
+                        }
+                        const averageHTML = `
+                            <div style="text-align: left; margin-top: ${isSingleStudentView ? '1rem' : '0.5rem'}; font-weight: bold;">
+                                Promedio General: ${average} - ${averageDesempeno.nivel}
+                            </div>
+                        `;
+
+                        boletinDiv.innerHTML = `
+                            <div class="boletin-header">
+                                <div style="display: flex; justify-content: flex-end; align-items: flex-start; width: 100%;">
+                                    <div class="fecha-impresion-print">${fechaImpresion}</div>
+                                </div>
+                                <h3>Reporte de Calificaciones</h3>
+                                <p>Institución Educativa XYZ</p>
+                            </div>
+                            <div class="student-info">
+                                <p><strong>Estudiante:</strong> ${student.student_name}</p>
+                                <p><strong>Grado:</strong> ${student.grado}</p>
+                                <p><strong>Documento:</strong> ${student.targeta_identidad}</p>
+                            </div>
+                            <table class="grades-table">
+                                <thead>
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th>Logros</th>
+                                        <th style="text-align: center;">I.H</th>
+                                        <th style="text-align: center;">J.V</th>
+                                        <th style="text-align: center;">Desempeño</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${materiasHTML}
+                                </tbody>
+                            </table>
+                            ${rankHTML}
+                            ${averageHTML}
+                        `;
+                        boletinesContainer.appendChild(boletinDiv);
+                    });
+
+                } catch (error) {
+                    boletinesContainer.innerHTML = `<p>${error.message}</p>`;
+                }
+            }
+
+            fetchAndDisplayBoletines();
+
+            // Back button: navigate back in history. Hidden in print via .no-print class.
+            const backBtn = document.getElementById('backButtonBoletin');
+            if (backBtn) {
+                backBtn.addEventListener('click', () => {
+                    window.history.back();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
