@@ -5,76 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        #boletinCedulaForm {
-            background-color: #f9f9f9;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-            margin-top: 1rem;
-        }
-        #boletinCedulaForm .form-group {
-            margin-bottom: 1rem;
-        }
-        #boletinCedulaForm label {
-            font-weight: bold;
-            color: #333;
-        }
-        #boletinCedulaForm input[type="text"] {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 0.6rem;
-            width: calc(100% - 1.2rem); /* Adjust for padding */
-        }
-        #boletinCedulaForm button {
-            background-color: #28a745; /* Green button */
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.2s;
-            width: auto; /* Override default button width */
-        }
-        #boletinCedulaForm button:hover {
-            background-color: #218838;
-        }
-        #logoutButton {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1000;
-            background-color: #dc3545; /* Red for logout */
-            color: white;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: auto; /* Override default 100% width */
-            transition: background-color 0.2s;
-        }
-        #logoutButton:hover {
-            background-color: #c82333;
-        }
-    </style>
 </head>
-<body>
-    <button id="logoutButton">Cerrar Sesión</button>
-    <div class="container">
+<body class="default-page">
+    <div class="background-overlay"></div>
+    <div class="container-wide">
+        <div class="dashboard-header">
+            <i class="fas fa-home panel-icon"></i>
+            <h1 style="text-align:center; width:100%;">Panel de Padres</h1>
+            <button id="logoutButton" class="button choice-btn" style="background: #dc3545;">Cerrar Sesión</button>
+        </div>
+
         <h2>Consultar Boletín</h2>
         <form id="boletinCedulaForm">
             <div class="form-group">
                 <label for="cedulaInput">Tarjeta de Identidad del Estudiante</label>
                 <input type="text" id="cedulaInput" name="cedula" required placeholder="Ej: 123456789">
             </div>
-            <button type="submit">Ver Boletín</button>
+            <button type="submit" class="button choice-btn">Ver Boletín</button>
         </form>
 
         <hr style="margin: 2rem 0;">
-        <button id="viewUsersButton" style="display:none;">Ver Usuarios</button>
+        <button id="viewUsersButton" class="button choice-btn" style="display:none;">Ver Usuarios</button>
+    <button id="viewUsersButton" class="button choice-btn" style="display:none;">Ver Usuarios</button>
     </div>
 
     <script>
@@ -83,17 +35,16 @@
             const userDataString = sessionStorage.getItem('userData');
 
             if (!isLoggedIn || !userDataString) {
-                // Si no está logueado o no hay datos, fuera
                 window.location.href = 'index.html';
-                return; // Detener la ejecución del script
+                return;
             }
 
             const userData = JSON.parse(userDataString);
             const viewUsersButton = document.getElementById('viewUsersButton');
 
-            // Mostrar el botón "Ver Usuarios" si el rol es super-admin
             if (userData.role === 'super-admin') {
-                viewUsersButton.style.display = 'block';
+                viewUsersButton.style.display = 'inline-flex';
+                viewUsersButton.onclick = () => window.location.href = 'view-users.html';
             }
         });
 
@@ -107,7 +58,7 @@
 
         document.getElementById('logoutButton').addEventListener('click', () => {
             sessionStorage.removeItem('isLoggedIn');
-            sessionStorage.removeItem('userData'); // Limpiar también los datos del usuario
+            sessionStorage.removeItem('userData');
             window.location.href = 'index.html';
         });
     </script>

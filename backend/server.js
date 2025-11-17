@@ -53,12 +53,13 @@ app.post('/register', (req, res) => {
             return res.status(500).json({ message: 'Error al encriptar la contraseña.' });
         }
 
-        const query = 'INSERT INTO personas (cedula, username, email, password, role) VALUES (?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO personas (cedula, nombre, email, password, role) VALUES (?, ?, ?, ?, ?)';
         db.query(query, [cedula, username, email, hash, role], (err, result) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') {
                     return res.status(409).json({ message: 'El nombre de usuario, email o la cédula ya existen.' });
                 }
+                console.error('Error al registrar:', err);
                 return res.status(500).json({ message: 'Error al registrar el usuario.' });
             }
             return res.status(201).json({ message: 'Usuario registrado exitosamente.' });
@@ -120,6 +121,52 @@ const query = 'SELECT * FROM personas WHERE email = ? AND role != "estudiante"';
                 });
             } else {
                 return res.status(401).json({ message: 'Email o contraseña incorrectos.' });
+            }
+        });
+    });
+});
+
+// Ruta de login para estudiantes
+app.post('/student-login', (req, res) => {
+    const { cedula, password } = req.body;
+
+    if (!cedula || !password) {
+        return res.status(400).json({ message: 'Por favor, introduce cédula y contraseña.' });
+    }
+
+    const query = 'SELECT p.*, e.grado FROM personas p LEFT JOIN estudiantes e ON p.cedula = e.cedula WHERE p.cedula = ? AND (p.role = "estudiante" OR p.role IS NULL OR p.role = "")';
+    db.query(query, [cedula], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error en el servidor.' });
+        }
+
+        if (results.length === 0) {
+            return res.status(401).json({ message: 'Cédula o contraseña incorrectos.' });
+        }
+
+        const student = results[0];
+
+        bcrypt.compare(password, student.password, (err, isMatch) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error al verificar la contraseña.' });
+            }
+
+            if (isMatch) {
+                const studentData = {
+                    username: student.username || student.nombre,
+                    cedula: student.cedula,
+                    nombre: student.nombre,
+                    grado: student.grado,
+                    role: 'estudiante'
+                };
+
+                return res.status(200).json({
+                    message: 'Login de estudiante exitoso.',
+                    redirectTo: 'student-grades.html',
+                    user: studentData
+                });
+            } else {
+                return res.status(401).json({ message: 'Cédula o contraseña incorrectos.' });
             }
         });
     });
@@ -333,12 +380,13 @@ app.post('/api/users', (req, res) => {
     bcrypt.hash(password, 10, (err, hash) => {
         if (err) return res.status(500).json({ message: 'Error al encriptar la contraseña.' });
 
-        const query = 'INSERT INTO persona (cedula, username, email, password, role) VALUES (?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO personas (cedula, nombre, email, password, role) VALUES (?, ?, ?, ?, ?)';
         db.query(query, [cedula, username, email, hash, role], (err, result) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') {
                     return res.status(409).json({ message: 'El nombre de usuario, email o la cédula ya existen.' });
                 }
+                console.error('Error al crear usuario:', err);
                 return res.status(500).json({ message: 'Error al registrar el usuario.' });
             }
             res.status(201).json({ message: 'Usuario creado exitosamente.' });
@@ -353,11 +401,11 @@ app.put('/api/users/:cedula/role', (req, res) => {
 
     if (!role) return res.status(400).json({ message: 'El rol es requerido.' });
 
-    if (!['user', 'admin', 'super-admin'].includes(role)) {
+    if (!['user', 'admin', 'super-admin', 'estudiante'].includes(role)) {
         return res.status(400).json({ message: 'Rol no válido.' });
     }
 
-const query = 'UPDATE personas SET role = ? WHERE cedula = ?';
+    const query = 'UPDATE personas SET role = ? WHERE cedula = ?';
 
     db.query(query, [role, cedula], (err, result) => {
         if (err) return res.status(500).json({ message: 'Error al actualizar el rol del usuario.' });

@@ -32,10 +32,20 @@
             color: #333;
         }
         /* Compact styles for smaller panel */
-        .container {
-            max-width: 500px; /* Make narrower */
+        .container.full-width {
+            max-width: 325px;
             margin: 0 auto;
-            padding: 1rem; /* Reduce padding */
+            padding: 1.2rem 1.2rem 1.5rem 1.2rem;
+        }
+        .button.choice-btn {
+            width: 100%;
+            margin-bottom: 0.7rem;
+        }
+        .container.full-width button[type="submit"],
+        .container.full-width button,
+        .container.full-width .button {
+            width: 100%;
+            margin-bottom: 0.7rem;
         }
         h2 {
             font-size: 1.2rem; /* Smaller headings */
@@ -64,11 +74,11 @@
         }
     </style>
 </head>
-<body>
+    <body class="default-page">
     <div id="currentUserDisplay"></div>
-    <button id="logoutButton" class="top-left-button">Cerrar Sesión</button>
-    <div class="container">
-
+    <button id="logoutButton" class="superadmin-logout-btn">Cerrar Sesión</button>
+    <div class="container full-width">
+    <i class="fas fa-user-shield panel-icon"></i>
         <hr style="margin: 2rem 0;">
 
         <h2>Filtrar Registros de Notas</h2>
@@ -82,22 +92,22 @@
                 <label for="grado">Grado (Nivel del Curso)</label>
                 <input type="text" id="grado" name="grado" required>
             </div>
-            <button type="submit">Buscar Estudiantes</button>
+            <button type="submit" class="button choice-btn">Buscar Estudiantes</button>
         </form>
 
         <hr style="margin: 2rem 0;">
 
         <h2>Generar Boletines</h2>
         <form id="boletinForm">
-            <button type="submit">Generar Boletines por Grado</button>
+            <button type="submit" class="button choice-btn">Generar Boletines por Grado</button>
         </form>
 
         <hr style="margin: 2rem 0;">
 
-
         <h2>Gestión de Usuarios y Roles</h2>
         <p>Ver, agregar, editar y eliminar usuarios y asignar roles desde un panel centralizado.</p>
-        <button onclick="window.location.href='manage-users.html'">Gestionar Usuarios</button>
+        <button onclick="window.location.href='manage-users.html'" class="button choice-btn">Gestionar Usuarios</button>
+    <!-- Solo un botón de Gestionar Usuarios -->
     </div>
 
     <script>

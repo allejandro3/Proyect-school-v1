@@ -5,46 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administrador</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Botones principales naranja y visibles */
-        button[type="submit"], #logoutButton {
-            background: linear-gradient(90deg,#6f42c1,#8a63d9);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 12px 0;
-            margin: 12px 0;
-            box-shadow: 0 2px 6px rgba(111,66,193,0.12);
-            cursor: pointer;
-            transition: background 0.15s;
-            width: 100%;
-        }
-        button[type="submit"]:hover, #logoutButton:hover {
-            background: linear-gradient(90deg,#5936a8,#6f42c1);
-        }
-        .container {
-            max-width: 420px;
-            margin: 2.5rem auto;
-            padding: 3px 28px 8px 28px;
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 8px 30px rgba(81, 47, 138, 0.08);
-            border-top: none;
-        }
-        hr {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 2rem 0;
-        }
-    </style>
 </head>
-<body>
-    <div class="container">
+<body class="default-page">
+    <div class="background-overlay"></div>
+    <div class="container-wide">
+        <div class="dashboard-header">
+            <h1>Panel de Administrador</h1>
+            <button id="logoutButton" class="button button-danger">Cerrar Sesión</button>
+        </div>
+
+    <!-- Eliminado userInfo -->
+
         <h2>Filtrar Registros de Notas</h2>
         <p>Introduce la materia y el grado para encontrar los registros que quieres modificar.</p>
-        <div id="userInfo"></div>
 
         <form id="filterForm">
             <div class="form-group">
@@ -55,23 +28,19 @@
                 <label for="grado">Grado (Nivel del Curso)</label>
                 <input type="text" id="grado" name="grado" required>
             </div>
-            <button type="submit">Buscar Estudiantes</button>
+            <button type="submit" class="button button-primary">Buscar Estudiantes</button>
         </form>
 
         <hr style="margin: 2rem 0;">
 
         <h2>Generar Boletines</h2>
         <form id="boletinForm">
-            <button type="submit">Generar Boletines por Grado</button>
+            <button type="submit" class="button button-primary">Generar Boletines por Grado</button>
         </form>
-
-        <br>
-        <button id="logoutButton" style="margin-top: 1rem;">Cerrar Sesión</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Verificación de seguridad ---
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             const userDataString = sessionStorage.getItem('userData');
             if (!isLoggedIn || !userDataString) {
@@ -79,26 +48,21 @@
                 return;
             }
             const userData = JSON.parse(userDataString);
-            document.getElementById('userInfo').innerHTML = `<p><strong>Administrador:</strong> ${userData.username}</p>`;
+            // Eliminado renderizado de Administrador
 
-            // --- Lógica del formulario de filtro ---
             document.getElementById('filterForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const subject = document.getElementById('subject').value;
                 const grado = document.getElementById('grado').value;
-
-                // Construir la URL para la página de edición con los parámetros de búsqueda
                 const queryParams = new URLSearchParams({ subject, grado });
                 window.location.href = `edit-grades.html?${queryParams.toString()}`;
             });
 
-            // --- Lógica para generar boletines ---
             document.getElementById('boletinForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 window.location.href = 'select-grade.html';
             });
 
-            // --- Botón de Logout ---
             document.getElementById('logoutButton').addEventListener('click', () => {
                 sessionStorage.clear();
                 window.location.href = 'index.html';

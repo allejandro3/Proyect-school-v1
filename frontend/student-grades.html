@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Notas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        body.student-page {
+            display: block;
+            height: auto;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .student-dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .student-info {
+            text-align: left;
+        }
+        .student-info h1 {
+            margin: 0;
+            color: #333;
+            font-size: 1.8rem;
+            line-height: 1.2;
+        }
+        .student-info p {
+            margin: 0.25rem 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        .logout-btn {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.35rem 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+            height: fit-content;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .grades-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .grades-section h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 1rem;
+        }
+        .student-grades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .student-grades-table th {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        .student-grades-table td {
+            border: 1px solid #ddd;
+            padding: 0.85rem;
+            background-color: #fff;
+        }
+        .student-grades-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .student-grades-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .stat-card h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        .stat-card p {
+            margin: 0.5rem 0 0 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body class="student-page">
+    <div class="container-wide">
+        <div class="student-dashboard-header">
+            <div class="student-info">
+                <i class="fas fa-graduation-cap student-panel-icon"></i>
+                <h1>Mis Notas</h1>
+                <p id="studentNameDisplay"></p>
+                <p id="studentGradeDisplay"></p>
+            </div>
+            <button class="button choice-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+
+        <div class="stats-container" id="statsContainer" style="display: none;">
+            <div class="stat-card">
+                <h3>Total de Materias</h3>
+                <p id="totalSubjects">0</p>
+            </div>
+        </div>
+
+        <div class="grades-section">
+            <h2>📊 Registro de Calificaciones</h2>
+            <div id="gradesContainer" class="loading">
+                <p>Cargando tus calificaciones...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            let userDataString = sessionStorage.getItem('userData');
+            
+            // Si no está en userData, buscar en studentData
+            if (!userDataString) {
+                userDataString = sessionStorage.getItem('studentData');
+            }
+
+            if (!isLoggedIn || !userDataString) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const userData = JSON.parse(userDataString);
+
+                // Mostrar información del estudiante
+                document.getElementById('studentNameDisplay').textContent = `👤 ${userData.nombre || userData.username}`;
+                if (userData.grado) {
+                    document.getElementById('studentGradeDisplay').textContent = `📚 Grado: ${userData.grado}`;
+                }
+
+                // Cargar notas del estudiante
+                await loadStudentGrades(userData.cedula);
+            } catch (error) {
+                console.error('Error al procesar datos de usuario:', error);
+                window.location.href = 'login.html';
+            }
+        });
+
+        async function loadStudentGrades(cedula) {
+            const gradesContainer = document.getElementById('gradesContainer');
+            
+            try {
+                const response = await fetch(`/api/boletin/${cedula}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        gradesContainer.innerHTML = '<div class="empty-state"><p>📭 No tiene reporte</p></div>';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const studentData = await response.json();
+
+                if (!studentData.records || studentData.records.length === 0) {
+                    gradesContainer.innerHTML = '<div class="empty-state"><p>📭 No tiene reporte</p></div>';
+                    return;
+                }
+
+                // Mostrar estadísticas
+                document.getElementById('totalSubjects').textContent = studentData.records.length;
+                document.getElementById('statsContainer').style.display = 'grid';
+
+                // Construir tabla de calificaciones
+                let tableHTML = `
+                    <table class="student-grades-table">
+                        <thead>
+                            <tr>
+                                <th>Materia</th>
+                                <th>Logros</th>
+                                <th>I-H (Indicador Humanístico)</th>
+                                <th>J-V (Juicio de Valor)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                studentData.records.forEach(record => {
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${record.subject}</strong></td>
+                            <td>${record.logros || 'N/A'}</td>
+                            <td>${record.I_H || 'N/A'}</td>
+                            <td>${record.J_V || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>
+                `;
+
+                gradesContainer.innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error('Error al cargar las calificaciones:', error);
+                gradesContainer.innerHTML = '<div class="empty-state"><p>❌ Error al cargar tus calificaciones. Intenta de nuevo más tarde.</p></div>';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isLoggedIn');
+            sessionStorage.removeItem('userData');
+            sessionStorage.removeItem('studentData');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

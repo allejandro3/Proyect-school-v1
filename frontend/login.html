@@ -6,10 +6,17 @@
     <title>Login</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="centered-page">
+    <div class="background-overlay"></div>
     <div class="container">
         <h2>Iniciar Sesión</h2>
-        <form id="loginForm">
+
+        <div class="tabs">
+            <button type="button" id="adminTab" class="tab-button active" onclick="switchTab('admin')">Usuario</button>
+            <button type="button" id="studentTab" class="tab-button" onclick="switchTab('student')">Estudiante</button>
+        </div>
+
+        <form id="adminLoginForm" class="login-form">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required>
@@ -18,8 +25,21 @@
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Login</button>
+            <button type="submit" class="button button-primary" style="width: 100%;">Iniciar Sesión</button>
         </form>
+
+        <form id="studentLoginForm" class="login-form" style="display: none;">
+            <div class="form-group">
+                <label for="cedula">Cédula</label>
+                <input type="text" id="cedula" name="cedula" placeholder="Ej: 1234567890" required>
+            </div>
+            <div class="form-group">
+                <label for="studentPassword">Contraseña</label>
+                <input type="password" id="studentPassword" name="studentPassword" required>
+            </div>
+            <button type="submit" class="button button-primary" style="width: 100%;">Iniciar Sesión</button>
+        </form>
+
         <div id="message" class="message"></div>
         <a href="register.html">¿No tienes cuenta? Regístrate</a>
         <br>
@@ -27,9 +47,28 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function switchTab(tab) {
+            const adminForm = document.getElementById('adminLoginForm');
+            const studentForm = document.getElementById('studentLoginForm');
+            const adminTab = document.getElementById('adminTab');
+            const studentTab = document.getElementById('studentTab');
 
+            if (tab === 'admin') {
+                adminForm.style.display = 'block';
+                studentForm.style.display = 'none';
+                adminTab.classList.add('active');
+                studentTab.classList.remove('active');
+            } else {
+                adminForm.style.display = 'none';
+                studentForm.style.display = 'block';
+                adminTab.classList.remove('active');
+                studentTab.classList.add('active');
+            }
+            document.getElementById('message').textContent = '';
+        }
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const messageDiv = document.getElementById('message');
@@ -37,27 +76,47 @@
             try {
                 const response = await fetch('http://localhost:3000/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
-
                 const data = await response.json();
-
                 if (response.ok) {
-                    // Guardar estado de login y datos del usuario
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userData', JSON.stringify(data.user));
-
-                    // Si el backend envía una URL de redirección, la usamos
                     if (data.redirectTo) {
                         window.location.href = data.redirectTo;
                     } else {
                         window.location.href = 'dashboard.html';
                     }
                 } else {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Error en la autenticación');
+                }
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+            }
+        });
+
+        document.getElementById('studentLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cedula = document.getElementById('cedula').value;
+            const password = document.getElementById('studentPassword').value;
+            const messageDiv = document.getElementById('message');
+
+            try {
+                const response = await fetch('/student-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cedula, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('studentData', JSON.stringify(data.user));
+                    window.location.href = 'student-grades.html';
+                } else {
+                    throw new Error(data.message || 'Error en la autenticación del estudiante');
                 }
             } catch (error) {
                 messageDiv.textContent = error.message;

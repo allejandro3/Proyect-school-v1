@@ -3,91 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionar Usuarios</title>
+    <title>Gestión de Usuarios y Estudiantes</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        table {
+        body {
+            min-height: 100vh;
+            padding: 0.5rem 0;
+        }
+        .container-wide {
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0.5rem;
+        }
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 0.75rem;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        .header-section h1 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+        .header-section button {
+            background-color: #007bff;
+            color: white;
+            padding: 0.35rem 0.7rem;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .header-section button:hover {
+            background-color: #0056b3;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .panel {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 6px;
+            padding: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            display: flex;
+            flex-direction: column;
+            height: 480px;
+        }
+        .panel h2 {
+            color: #333;
+            margin: 0 0 0.35rem 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.35rem;
+            font-size: 1rem;
+        }
+        .panel > p {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .search-box {
+            width: 100%;
+            padding: 0.4rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            box-sizing: border-box;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.4rem;
+        }
+        .panel-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .panel-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .panel-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd8;
+        }
+        .users-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            font-size: 0.8rem;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+        .users-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.4rem;
             text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            position: sticky;
+            top: 0;
         }
-        th {
-            background-color: #f2f2f2;
+        .users-table td {
+            border: 1px solid #ddd;
+            padding: 0.4rem;
+            background-color: #fff;
         }
-        .actions-cell button {
-            margin-right: 5px;
+        .users-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .users-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .action-cell {
+            position: relative;
+        }
+        .dropdown-btn {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
             cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
         }
-        .page-actions {
-            margin-bottom: 20px;
+        .dropdown-btn:hover {
+            background-color: #5a6fd8;
         }
-        .back-link {
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            min-width: 140px;
+            margin-top: 2px;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.2s;
+        }
+        .dropdown-item:hover {
+            background-color: #f0f0f0;
+        }
+        .dropdown-item-promote {
+            color: #28a745;
+        }
+        .dropdown-item-demote {
+            color: #ffc107;
+        }
+        .dropdown-item-delete {
+            color: #dc3545;
+            border-top: 1px solid #eee;
+        }
+        .dropdown-item-disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        .dropdown-item-disabled:hover {
+            background-color: white;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 1rem 0.5rem;
+            color: #666;
+            font-size: 0.8rem;
+        }
+        .student-item {
+            background-color: #f8f9fa;
+            padding: 0.6rem;
+            margin-bottom: 0.4rem;
+            border-radius: 3px;
+            border-left: 2px solid #667eea;
+        }
+        .student-item h4 {
+            margin: 0 0 0.15rem 0;
+            color: #333;
+            font-size: 0.8rem;
+        }
+        .student-item p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #666;
+        }
+        .message {
+            padding: 0.6rem;
+            margin-bottom: 0.5rem;
+            border-radius: 3px;
+            display: none;
+            font-size: 0.8rem;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .role-badge {
             display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
+            padding: 0.12rem 0.35rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            white-space: nowrap;
         }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; }
-        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .delete-button { background-color: #dc3545; margin-top: 10px; }
-        .delete-button:hover { background-color: #c82333; }
+        .badge-admin {
+            background-color: #e7d4f5;
+            color: #6f42c1;
+        }
+        .badge-superadmin {
+            background-color: #ffc107;
+            color: #333;
+        }
+        .badge-user {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .badge-student {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .loading {
+            text-align: center;
+            padding: 1rem 0.5rem;
+            color: #666;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .panel {
+                height: 420px;
+            }
+        }
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 1rem;
+            }
+            .panel {
+                height: 350px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Gestionar Usuarios y Roles</h1>
-        <div class="page-actions">
-            <button id="manageUserButton">Modificar Usuario</button>
+    <div class="container-wide">
+        <div class="header-section">
+            <h1>👥 Gestión de Usuarios y Estudiantes</h1>
+            <button onclick="window.location.href='super-admin.html'">← Volver al Panel</button>
         </div>
-        <table id="usersTable">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                </tr>
-            </thead>
-            <tbody id="usersTableBody">
-                <!-- Los datos de los usuarios se cargarán aquí -->
-            </tbody>
-        </table>
-        <p id="loadingMessage">Cargando usuarios...</p>
-        <a href="super-admin.html" class="back-link">‹ Volver al panel de Super Administrador</a>
-    </div>
 
-    <!-- El Modal para Editar -->
-    <div id="editUserModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h3>Modificar Usuario y Roles</h3>
-            <form id="editUserForm" onsubmit="return false;">
-                <div class="form-group">
-                    <label for="userSelect">Seleccionar Usuario:</label>
-                    <select id="userSelect" name="cedula" required></select>
+        <div id="messageContainer"></div>
+
+        <div class="main-grid">
+            <!-- Panel de Gestión de Personas -->
+            <div class="panel">
+                <h2>👨‍💼 Gestión de Personas</h2>
+                <p>Aquí puedes ascender o degradar a otros usuarios, excepto a ti mismo.</p>
+                <input type="text" id="usersSearchBox" class="search-box" placeholder="🔍 Buscar por nombre o cédula...">
+                <div id="usersContainer" class="panel-content loading">
+                    <p>Cargando usuarios...</p>
                 </div>
-                <div class="form-group">
-                    <label for="newRole">Nuevo Rol:</label>
-                    <select id="newRole" name="role">
-                        <option value="estudiante">Estudiante</option>
-                        <option value="user">Usuario</option>
-                        <option value="admin">Administrador</option>
-                        <option value="super-admin">Super Administrador</option>
-                    </select>
+            </div>
+
+            <!-- Panel de Estudiantes -->
+            <div class="panel">
+                <h2>👨‍🎓 Panel de Estudiantes</h2>
+                <p>Estudiantes registrados en el sistema.</p>
+                <input type="text" id="studentsSearchBox" class="search-box" placeholder="🔍 Buscar estudiante...">
+                <div id="studentsContainer" class="panel-content loading">
+                    <p>Cargando estudiantes...</p>
                 </div>
-                <button type="submit" id="saveChangesButton">Guardar Cambios</button>
-                <button type="button" id="deleteUserButton" class="delete-button">Eliminar Usuario</button>
-            </form>
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Verificación de Seguridad ---
+        let allUsers = [];
+        let allStudents = [];
+        let currentUserCedula = '';
+
+        document.addEventListener('DOMContentLoaded', async () => {
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             const userDataString = sessionStorage.getItem('userData');
 
@@ -97,193 +330,314 @@
             }
 
             const userData = JSON.parse(userDataString);
+            currentUserCedula = userData.cedula;
 
-            // Normalize helper: returns array of role strings (lowercased, trimmed)
-            function extractRoles(u) {
-                if (!u) return [];
-                // If explicit role property
-                if (u.role) {
-                    if (Array.isArray(u.role)) return u.role.map(r => String(r).trim().toLowerCase());
-                    return [String(u.role).trim().toLowerCase()];
-                }
-                // If booleans like isSuper, is_superadmin, is_super
-                const boolRoles = [];
-                if (u.isSuper || u.is_super || u.is_superadmin || u.isSuperAdmin || u.is_super_admin) boolRoles.push('super-admin');
-                if (u.isAdmin || u.is_admin) boolRoles.push('admin');
-                // If roles array
-                if (u.roles && Array.isArray(u.roles)) {
-                    return u.roles.map(r => String(r).trim().toLowerCase()).concat(boolRoles);
-                }
-                return boolRoles;
-            }
-
+            // Verificar que sea super-admin
             const roles = extractRoles(userData);
-            // Also check username/email patterns (edge case)
-            const username = (userData.username || '').toString().trim().toLowerCase();
-
-            // Consider also plain role strings at top-level (e.g., userData === 'super-admin')
-            let raw = '';
-            if (typeof userData === 'string') raw = userData.trim().toLowerCase();
-            if (!raw && userData.role) raw = String(userData.role).trim().toLowerCase();
-
-            // Check common variations: superadmin, super-admin, super_admin, super admin
-            const roleMatchesSuperAdmin = roles.some(r => /super[-_\s]?admin/.test(r))
-                || /super[-_\s]?admin/.test(raw)
-                || /super[-_\s]?admin/.test(username)
-                || roles.includes('director')
-                || raw === 'director';
-
-            console.log('Extracted roles:', roles, 'raw:', raw, 'username:', username, 'isSuperAdmin:', roleMatchesSuperAdmin);
+            const roleMatchesSuperAdmin = roles.some(r => /super[-_\s]?admin/.test(r)) || userData.role === 'Director';
 
             if (!roleMatchesSuperAdmin) {
-                alert('Acceso denegado. Solo los super-administradores pueden ver esta página.');
-                window.location.href = 'admin.html';
+                window.location.href = 'super-admin.html';
                 return;
             }
 
-            const usersTableBody = document.getElementById('usersTableBody');
-            const loadingMessage = document.getElementById('loadingMessage');
-            const manageUserButton = document.getElementById('manageUserButton');
-            const editUserModal = document.getElementById('editUserModal');
-            const closeButton = editUserModal.querySelector('.close-button');
-            const editUserForm = document.getElementById('editUserForm');
-            const userSelect = document.getElementById('userSelect');
-            const newRole = document.getElementById('newRole');
-            const saveChangesButton = document.getElementById('saveChangesButton');
-            const deleteUserButton = document.getElementById('deleteUserButton');
+            await loadUsers();
+            await loadStudents();
 
-            let usersData = []; // Para almacenar los datos de los usuarios
+            // Event listeners para búsqueda
+            document.getElementById('usersSearchBox').addEventListener('input', filterUsers);
+            document.getElementById('studentsSearchBox').addEventListener('input', filterStudents);
+        });
 
-            // --- Cargar y Mostrar Usuarios ---
-            async function fetchUsers() {
-                usersTableBody.innerHTML = '';
-                loadingMessage.style.display = 'block';
-                loadingMessage.textContent = 'Cargando usuarios...';
+        function extractRoles(u) {
+            if (!u) return [];
+            if (u.role) {
+                if (Array.isArray(u.role)) return u.role.map(r => String(r).trim().toLowerCase());
+                return [String(u.role).trim().toLowerCase()];
+            }
+            const boolRoles = [];
+            if (u.isSuper || u.is_super || u.is_superadmin || u.isSuperAdmin || u.is_super_admin) boolRoles.push('super-admin');
+            if (u.isAdmin || u.is_admin) boolRoles.push('admin');
+            if (u.roles && Array.isArray(u.roles)) {
+                return u.roles.map(r => String(r).trim().toLowerCase()).concat(boolRoles);
+            }
+            return boolRoles;
+        }
 
-                try {
-                    const response = await fetch('/api/users'); 
-                    if (!response.ok) {
-                        throw new Error(`Error al cargar usuarios: ${response.statusText}`);
-                    }
-                    const users = await response.json();
-                    usersData = users; // Guardar datos globalmente
+        async function loadUsers() {
+            const usersContainer = document.getElementById('usersContainer');
+            
+            try {
+                const response = await fetch('/api/users');
+                if (!response.ok) throw new Error('Error al obtener usuarios');
+                
+                allUsers = await response.json();
+                // Filtrar para no mostrar al super-admin actual
+                allUsers = allUsers.filter(u => u.cedula !== currentUserCedula);
+                
+                displayUsers(allUsers);
+            } catch (error) {
+                console.error('Error:', error);
+                usersContainer.innerHTML = '<div class="empty-state"><p>❌ Error al cargar usuarios</p></div>';
+            }
+        }
 
-                    if (users.length === 0) {
-                        loadingMessage.textContent = 'No se encontraron usuarios.';
-                        manageUserButton.disabled = true;
-                        return;
-                    }
+        async function loadStudents() {
+            const studentsContainer = document.getElementById('studentsContainer');
+            
+            try {
+                const response = await fetch('/api/users');
+                if (!response.ok) throw new Error('Error al obtener usuarios');
+                
+                const users = await response.json();
+                allStudents = users.filter(u => u.role === 'estudiante' || u.role === null || u.role === '');
+                
+                displayStudents(allStudents);
+            } catch (error) {
+                console.error('Error:', error);
+                studentsContainer.innerHTML = '<div class="empty-state"><p>❌ Error al cargar estudiantes</p></div>';
+            }
+        }
 
-                    loadingMessage.style.display = 'none';
-                    manageUserButton.disabled = false;
-                    usersTableBody.innerHTML = '';
-                    userSelect.innerHTML = '<option value="">-- Seleccione un usuario --</option>';
-
-                    users.forEach(user => {
-                        // Poblar la tabla
-                        const row = usersTableBody.insertRow();
-                        row.innerHTML = `
-                            <td>${user.nombre}</td>
-                            <td>${user.email}</td>
-                            <td>${user.role}</td>
-                        `;
-
-                        // Poblar el dropdown del modal
-                        const option = document.createElement('option');
-                        option.value = user.cedula;
-                        option.textContent = `${user.nombre} (${user.email})`;
-                        userSelect.appendChild(option);
-                    });
-
-                } catch (error) {
-                    loadingMessage.textContent = `Error: ${error.message}`;
-                }
+        function displayUsers(users) {
+            const usersContainer = document.getElementById('usersContainer');
+            
+            if (users.length === 0) {
+                usersContainer.innerHTML = '<div class="empty-state"><p>📭 No hay usuarios para mostrar</p></div>';
+                return;
             }
 
-            // --- Lógica del Modal ---
-            manageUserButton.addEventListener('click', () => {
-                editUserForm.reset();
-                saveChangesButton.disabled = true;
-                deleteUserButton.disabled = true;
-                editUserModal.style.display = 'block';
+            let html = `
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cédula</th>
+                            <th>Rol</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            users.forEach((user, index) => {
+                const roleBadgeClass = getRoleBadgeClass(user.role);
+                const roleName = getRoleName(user.role);
+                
+                html += `
+                    <tr>
+                        <td>${user.nombre || 'N/A'}</td>
+                        <td>${user.cedula}</td>
+                        <td><span class="role-badge ${roleBadgeClass}">${roleName}</span></td>
+                        <td class="action-cell">
+                            ${getActionDropdown(user, index)}
+                        </td>
+                    </tr>
+                `;
             });
 
-            closeButton.addEventListener('click', () => editUserModal.style.display = 'none');
-            window.addEventListener('click', (event) => {
-                if (event.target == editUserModal) editUserModal.style.display = 'none';
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            usersContainer.innerHTML = html;
+
+            // Agregar event listeners al dropdown
+            document.querySelectorAll('.dropdown-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+                    this.nextElementSibling.classList.add('show');
+                });
             });
 
-            userSelect.addEventListener('change', () => {
-                const selectedCedula = userSelect.value;
-                if (!selectedCedula) {
-                    editUserForm.reset();
-                    saveChangesButton.disabled = true;
-                    deleteUserButton.disabled = true;
-                    return;
+            // Cerrar dropdown al hacer click en item
+            document.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    this.closest('.dropdown-menu').classList.remove('show');
+                });
+            });
+
+            // Cerrar dropdown al hacer click fuera
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+            });
+        }
+
+        function getActionDropdown(user, index) {
+            const role = user.role;
+            const dropdownId = `dropdown-${index}`;
+
+            if (role === 'super-admin') {
+                return `<button class="dropdown-btn" disabled style="background-color: #ccc; cursor: not-allowed;">⋯</button>`;
+            }
+
+            let items = '';
+
+            // Promociones
+            if (role !== 'admin' && role !== 'super-admin') {
+                items += `<button class="dropdown-item dropdown-item-promote" onclick="changeRole('${user.cedula}', 'admin')">➕ A Admin</button>`;
+            }
+
+            if (role !== 'super-admin') {
+                items += `<button class="dropdown-item dropdown-item-promote" onclick="changeRole('${user.cedula}', 'super-admin')">⬆️ A Super-Admin</button>`;
+            }
+
+            // Degradaciones
+            if (role !== 'user') {
+                items += `<button class="dropdown-item dropdown-item-demote" onclick="changeRole('${user.cedula}', 'user')">� A Usuario</button>`;
+            }
+
+            items += `<button class="dropdown-item dropdown-item-demote" onclick="changeRole('${user.cedula}', 'estudiante')">📚 A Estudiante</button>`;
+
+            // Eliminar
+            items += `<button class="dropdown-item dropdown-item-delete" onclick="deleteUser('${user.cedula}', '${user.nombre}')">🗑️ Eliminar</button>`;
+
+            return `
+                <button class="dropdown-btn">⋯</button>
+                <div class="dropdown-menu" id="${dropdownId}">
+                    ${items}
+                </div>
+            `;
+        }
+
+        function displayStudents(students) {
+            const studentsContainer = document.getElementById('studentsContainer');
+            
+            if (students.length === 0) {
+                studentsContainer.innerHTML = '<div class="empty-state"><p>📭 No hay estudiantes registrados</p></div>';
+                return;
+            }
+
+            let html = '';
+            students.forEach(student => {
+                html += `
+                    <div class="student-item">
+                        <h4>👤 ${student.nombre || student.email || 'Estudiante'}</h4>
+                        <p><strong>Cédula:</strong> ${student.cedula}</p>
+                        <p><strong>Email:</strong> ${student.email || 'No registrado'}</p>
+                    </div>
+                `;
+            });
+
+            studentsContainer.innerHTML = html;
+        }
+
+        function getRoleBadgeClass(role) {
+            switch (role) {
+                case 'super-admin':
+                case 'Director':
+                    return 'badge-superadmin';
+                case 'admin':
+                case 'Maestro':
+                    return 'badge-admin';
+                case 'user':
+                case 'Padre':
+                    return 'badge-user';
+                case 'estudiante':
+                    return 'badge-student';
+                default:
+                    return 'badge-user';
+            }
+        }
+
+        function getRoleName(role) {
+            switch (role) {
+                case 'super-admin':
+                    return 'Super-Admin';
+                case 'admin':
+                    return 'Admin';
+                case 'user':
+                    return 'Usuario';
+                case 'estudiante':
+                    return 'Estudiante';
+                case 'Director':
+                    return 'Director';
+                case 'Maestro':
+                    return 'Maestro';
+                case 'Padre':
+                    return 'Padre';
+                default:
+                    return role || 'N/A';
+            }
+        }
+
+        async function changeRole(cedula, newRole) {
+            if (!confirm(`¿Estás seguro de cambiar el rol de este usuario a ${getRoleName(newRole)}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${cedula}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role: newRole })
+                });
+
+                if (response.ok) {
+                    showMessage('✅ Rol actualizado exitosamente', 'success');
+                    await loadUsers();
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + error.message, 'error');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('❌ Error al actualizar el rol', 'error');
+            }
+        }
 
-                const selectedUser = usersData.find(u => u.cedula === selectedCedula);
-                if (selectedUser) {
-                    newRole.value = selectedUser.role;
+        async function deleteUser(cedula, nombre) {
+            if (!confirm(`¿Estás seguro de que deseas eliminar a ${nombre}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/${cedula}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showMessage('✅ Usuario eliminado exitosamente', 'success');
+                    await loadUsers();
+                } else {
+                    const error = await response.json();
+                    showMessage('❌ ' + error.message, 'error');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('❌ Error al eliminar el usuario', 'error');
+            }
+        }
 
-                const isSelf = userData.cedula === selectedCedula;
-                saveChangesButton.disabled = isSelf;
-                deleteUserButton.disabled = isSelf;
-                saveChangesButton.title = isSelf ? "No puede modificar su propia cuenta." : "";
-                deleteUserButton.title = isSelf ? "No puede eliminar su propia cuenta." : "";
-            });
+        function filterUsers() {
+            const searchValue = document.getElementById('usersSearchBox').value.toLowerCase();
+            const filtered = allUsers.filter(u => 
+                (u.nombre || '').toLowerCase().includes(searchValue) ||
+                (u.cedula || '').toLowerCase().includes(searchValue)
+            );
+            displayUsers(filtered);
+        }
 
-            saveChangesButton.addEventListener('click', async () => {
-                const cedula = userSelect.value;
-                const role = newRole.value;
+        function filterStudents() {
+            const searchValue = document.getElementById('studentsSearchBox').value.toLowerCase();
+            const filtered = allStudents.filter(s =>
+                (s.nombre || '').toLowerCase().includes(searchValue) ||
+                (s.cedula || '').toLowerCase().includes(searchValue)
+            );
+            displayStudents(filtered);
+        }
 
-                try {
-                    const response = await fetch(`/api/users/${cedula}/role`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ role }),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'Error al actualizar el rol.');
-                    }
-
-                    alert('Rol de usuario actualizado exitosamente.');
-                    editUserModal.style.display = 'none';
-                    fetchUsers();
-                } catch (error) {
-                    alert(`Error: ${error.message}`);
-                }
-            });
-
-            deleteUserButton.addEventListener('click', async () => {
-                const cedula = userSelect.value;
-                if (!cedula) return;
-
-                if (confirm(`¿Está seguro de que desea ELIMINAR PERMANENTEMENTE al usuario con cédula ${cedula}? Esta acción no se puede deshacer.`)) {
-                    try {
-                        const response = await fetch(`/api/users/${cedula}`, {
-                            method: 'DELETE',
-                        });
-
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.message || 'Error al eliminar usuario.');
-                        }
-
-                        alert('Usuario eliminado exitosamente.');
-                        editUserModal.style.display = 'none';
-                        fetchUsers();
-                    } catch (error) {
-                        alert(`Error: ${error.message}`);
-                    }
-                }
-            });
-
-            fetchUsers();
-        });
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 4000);
+        }
     </script>
 </body>
 </html>
