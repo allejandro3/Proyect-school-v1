@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,14 +10,14 @@
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        
+
         body.student-page {
             display: block;
             height: auto;
             min-height: 100vh;
             padding: 2rem 0;
         }
-        
+
         .student-dashboard-header {
             display: flex;
             align-items: center;
@@ -27,37 +28,43 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
         .student-info {
             text-align: left;
         }
+
         .student-info h1 {
             margin: 0;
             color: #333;
             font-size: 1.8rem;
             line-height: 1.2;
         }
+
         .student-info p {
             margin: 0.25rem 0;
             color: #666;
             font-size: 0.95rem;
         }
+
         .logout-btn {
             background: var(--primary-gradient);
             color: white;
-            padding: 0.35rem 0.5rem;
+            padding: 0.6rem 1.2rem;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.75rem;
+            font-size: 0.95rem;
             transition: transform 0.2s, box-shadow 0.2s;
             white-space: nowrap;
             flex-shrink: 0;
             height: fit-content;
         }
+
         .logout-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
+
         .grades-section {
             background-color: white;
             padding: 2rem;
@@ -65,17 +72,20 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
         }
+
         .grades-section h2 {
             color: #333;
             margin-top: 0;
             border-bottom: 2px solid #667eea;
             padding-bottom: 1rem;
         }
+
         .student-grades-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
         }
+
         .student-grades-table th {
             background: var(--primary-gradient);
             color: white;
@@ -83,31 +93,38 @@
             text-align: left;
             font-weight: 600;
         }
+
         .student-grades-table td {
             border: 1px solid #ddd;
             padding: 0.85rem;
             background-color: #fff;
         }
+
         .student-grades-table tbody tr:hover {
             background-color: #f8f9fa;
         }
+
         .student-grades-table tbody tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
         .empty-state {
             text-align: center;
             padding: 2rem;
             color: #666;
         }
+
         .empty-state p {
             font-size: 1.1rem;
         }
+
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
         }
+
         .stat-card {
             background: var(--primary-gradient);
             color: white;
@@ -116,16 +133,19 @@
             text-align: center;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
+
         .stat-card h3 {
             margin: 0;
             font-size: 0.95rem;
             opacity: 0.9;
         }
+
         .stat-card p {
             margin: 0.5rem 0 0 0;
             font-size: 2rem;
             font-weight: 700;
         }
+
         .loading {
             text-align: center;
             padding: 2rem;
@@ -133,6 +153,7 @@
         }
     </style>
 </head>
+
 <body class="student-page">
     <div class="container-wide">
         <div class="student-dashboard-header">
@@ -142,7 +163,7 @@
                 <p id="studentNameDisplay"></p>
                 <p id="studentGradeDisplay"></p>
             </div>
-            <button class="button choice-btn" onclick="logout()">Cerrar Sesión</button>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
         </div>
 
         <div class="stats-container" id="statsContainer" style="display: none;">
@@ -164,7 +185,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             let userDataString = sessionStorage.getItem('userData');
-            
+
             // Si no está en userData, buscar en studentData
             if (!userDataString) {
                 userDataString = sessionStorage.getItem('studentData');
@@ -194,10 +215,10 @@
 
         async function loadStudentGrades(cedula) {
             const gradesContainer = document.getElementById('gradesContainer');
-            
+
             try {
                 const response = await fetch(`/api/boletin/${cedula}`);
-                
+
                 if (!response.ok) {
                     if (response.status === 404) {
                         gradesContainer.innerHTML = '<div class="empty-state"><p>📭 No tiene reporte</p></div>';
@@ -263,4 +284,5 @@
         }
     </script>
 </body>
+
 </html>

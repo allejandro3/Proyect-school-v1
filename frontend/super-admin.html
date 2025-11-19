@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,8 @@
             position: absolute;
             top: 1rem;
             left: 1rem;
-            background-color: #dc3545; /* Red for logout */
+            background-color: #dc3545;
+            /* Red for logout */
             color: white;
             padding: 0.3rem 0.6rem;
             border: none;
@@ -18,12 +20,16 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: background-color 0.2s;
-            z-index: 1000; /* Ensure it's on top */
-            width: auto; /* Override 100% width from styles.css */
+            z-index: 1000;
+            /* Ensure it's on top */
+            width: auto;
+            /* Override 100% width from styles.css */
         }
+
         .top-left-button:hover {
             background-color: #c82333;
         }
+
         #currentUserDisplay {
             position: absolute;
             top: 10px;
@@ -31,83 +37,130 @@
             font-weight: bold;
             color: #333;
         }
-        /* Compact styles for smaller panel */
+
+        /* New Grid Layout Styles */
         .container.full-width {
-            max-width: 325px;
-            margin: 0 auto;
-            padding: 1.2rem 1.2rem 1.5rem 1.2rem;
+            max-width: 1100px;
+            /* Much wider */
+            margin: 0.5rem auto 2rem auto;
+            padding: 2rem;
+            background: transparent;
+            /* Remove white bg from main container */
+            box-shadow: none;
+            /* Remove shadow from main container */
+            border: none;
         }
-        .button.choice-btn {
-            width: 100%;
-            margin-bottom: 0.7rem;
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            align-items: start;
         }
-        .container.full-width button[type="submit"],
-        .container.full-width button,
-        .container.full-width .button {
-            width: 100%;
-            margin-bottom: 0.7rem;
+
+        .admin-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease;
         }
-        h2 {
-            font-size: 1.2rem; /* Smaller headings */
-            margin: 1rem 0 0.5rem;
+
+        .admin-card:hover {
+            transform: translateY(-5px);
         }
-        p {
-            font-size: 0.9rem;
+
+        .admin-card h2 {
+            font-size: 1.4rem;
+            margin-top: 0;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .admin-card p {
+            color: #718096;
+            font-size: 0.95rem;
+            flex-grow: 1;
+        }
+
+        .form-group {
             margin-bottom: 1rem;
         }
-        .form-group {
-            margin-bottom: 0.8rem; /* Tighter spacing */
+
+        .button.choice-btn {
+            width: 100%;
+            margin-top: 1rem;
         }
-        .form-group label {
-            font-size: 0.9rem;
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
         }
-        .form-group input {
-            padding: 0.4rem; /* Smaller inputs */
-            font-size: 0.9rem;
-        }
-        button {
-            padding: 0.4rem 0.8rem; /* Smaller buttons */
-            font-size: 0.9rem;
-        }
-        hr {
-            margin: 1rem 0; /* Smaller HR margins */
+
+        .header-section h1 {
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
-    <body class="default-page">
+
+<body class="default-page">
     <div id="currentUserDisplay"></div>
     <button id="logoutButton" class="superadmin-logout-btn">Cerrar Sesión</button>
+
     <div class="container full-width">
-    <i class="fas fa-user-shield panel-icon"></i>
-        <hr style="margin: 2rem 0;">
+        <div class="header-section">
+            <i class="fas fa-user-shield panel-icon" style="color: white; font-size: 4rem; margin-bottom: 0.5rem;"></i>
+            <h1>Panel de Control</h1>
+        </div>
 
-        <h2>Filtrar Registros de Notas</h2>
-        <p>Introduce la materia y el grado para encontrar los registros que quieres modificar.</p>
-        <form id="filterForm">
-            <div class="form-group">
-                <label for="subject">Materia</label>
-                <input type="text" id="subject" name="subject" required>
+        <div class="admin-grid">
+            <!-- Card 1: Filtrar Registros -->
+            <div class="admin-card">
+                <h2>Filtrar Registros</h2>
+                <p>Modifica notas buscando por materia y grado.</p>
+                <form id="filterForm">
+                    <div class="form-group">
+                        <label for="subject">Materia</label>
+                        <input type="text" id="subject" name="subject" required placeholder="Ej. Matemáticas">
+                    </div>
+                    <div class="form-group">
+                        <label for="grado">Grado</label>
+                        <input type="text" id="grado" name="grado" required placeholder="Ej. 10-A">
+                    </div>
+                    <button type="submit" class="button choice-btn">Buscar</button>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="grado">Grado (Nivel del Curso)</label>
-                <input type="text" id="grado" name="grado" required>
+
+            <!-- Card 2: Generar Boletines -->
+            <div class="admin-card">
+                <h2>Boletines</h2>
+                <p>Genera y descarga los boletines de calificaciones por grado.</p>
+                <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-file-alt" style="font-size: 3rem; color: #cbd5e0;"></i>
+                </div>
+                <form id="boletinForm">
+                    <button type="submit" class="button choice-btn">Generar Boletines</button>
+                </form>
             </div>
-            <button type="submit" class="button choice-btn">Buscar Estudiantes</button>
-        </form>
 
-        <hr style="margin: 2rem 0;">
-
-        <h2>Generar Boletines</h2>
-        <form id="boletinForm">
-            <button type="submit" class="button choice-btn">Generar Boletines por Grado</button>
-        </form>
-
-        <hr style="margin: 2rem 0;">
-
-        <h2>Gestión de Usuarios y Roles</h2>
-        <p>Ver, agregar, editar y eliminar usuarios y asignar roles desde un panel centralizado.</p>
-        <button onclick="window.location.href='manage-users.html'" class="button choice-btn">Gestionar Usuarios</button>
-    <!-- Solo un botón de Gestionar Usuarios -->
+            <!-- Card 3: Gestión de Usuarios -->
+            <div class="admin-card">
+                <h2>Usuarios</h2>
+                <p>Administra cuentas, roles y permisos del sistema.</p>
+                <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users-cog" style="font-size: 3rem; color: #cbd5e0;"></i>
+                </div>
+                <button onclick="window.location.href='manage-users.html'" class="button choice-btn">Gestionar
+                    Usuarios</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -123,7 +176,7 @@
             const currentUserDisplay = document.getElementById('currentUserDisplay');
 
             // Mostrar el nombre de usuario en la esquina superior derecha
-            
+
 
             // --- Mejor detección de rol (normalización) ---
             // Añadimos logging para depuración y aceptamos varias formas de 'super admin'
@@ -199,4 +252,5 @@
         });
     </script>
 </body>
+
 </html>

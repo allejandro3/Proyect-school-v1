@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,146 +8,192 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
-            min-height: 100vh;
-            padding: 0.5rem 0;
-        }
-        .container-wide {
-            width: 95%;
-            max-width: 1400px;
-            margin: 0 auto;
+            height: 100vh;
+            margin: 0;
             padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
         }
+
+        .container-wide {
+            width: 100%;
+            max-width: 98%;
+            height: 100%;
+            margin: 0 auto;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+            box-shadow: none;
+            border: none;
+        }
+
         .header-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             background-color: rgba(255, 255, 255, 0.95);
-            padding: 0.75rem;
-            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
         }
+
         .header-section h1 {
             margin: 0;
             color: #333;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
         }
+
         .header-section button {
-            background-color: #007bff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 0.35rem 0.7rem;
+            padding: 0.5rem 1rem;
             border: none;
-            border-radius: 3px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
         }
+
         .header-section button:hover {
-            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
+
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+            /* Crucial for nested scrolling */
+            padding-bottom: 0.5rem;
         }
+
         .panel {
             background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 6px;
-            padding: 0.75rem;
+            border-radius: 8px;
+            padding: 1rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
             display: flex;
             flex-direction: column;
-            height: 480px;
-        }
-        .panel h2 {
-            color: #333;
-            margin: 0 0 0.35rem 0;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 0.35rem;
-            font-size: 1rem;
-        }
-        .panel > p {
-            margin: 0 0 0.5rem 0;
-            font-size: 0.75rem;
-            color: #666;
-        }
-        .search-box {
-            width: 100%;
-            padding: 0.4rem;
-            margin-bottom: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            font-size: 0.8rem;
+            height: 100%;
             box-sizing: border-box;
         }
+
+        .panel h2 {
+            color: #333;
+            margin: 0 0 0.5rem 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .panel>p {
+            margin: 0 0 0.75rem 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+
         .search-box:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
         }
+
         .panel-content {
             flex: 1;
             overflow-y: auto;
-            padding-right: 0.4rem;
+            padding-right: 0.5rem;
         }
+
         .panel-content::-webkit-scrollbar {
-            width: 5px;
+            width: 6px;
         }
+
         .panel-content::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
+
         .panel-content::-webkit-scrollbar-thumb {
             background: #667eea;
             border-radius: 10px;
         }
+
         .panel-content::-webkit-scrollbar-thumb:hover {
             background: #5a6fd8;
         }
+
         .users-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
         }
+
         .users-table th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 0.4rem;
+            padding: 0.6rem;
             text-align: left;
             font-weight: 600;
-            font-size: 0.75rem;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
+
         .users-table td {
             border: 1px solid #ddd;
-            padding: 0.4rem;
+            padding: 0.6rem;
             background-color: #fff;
         }
+
         .users-table tbody tr:hover {
             background-color: #f8f9fa;
         }
+
         .users-table tbody tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
         .action-cell {
             position: relative;
+            text-align: center;
         }
+
         .dropdown-btn {
             background-color: #667eea;
             color: white;
             border: none;
             padding: 0.3rem 0.6rem;
-            border-radius: 3px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: bold;
             transition: background-color 0.2s;
         }
+
         .dropdown-btn:hover {
             background-color: #5a6fd8;
         }
+
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -157,132 +204,151 @@
             border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             z-index: 100;
-            min-width: 140px;
+            min-width: 150px;
             margin-top: 2px;
         }
+
         .dropdown-menu.show {
             display: block;
         }
+
         .dropdown-item {
-            padding: 0.5rem 0.75rem;
+            padding: 0.6rem 0.8rem;
             cursor: pointer;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             border: none;
             background: none;
             width: 100%;
             text-align: left;
             transition: background-color 0.2s;
         }
+
         .dropdown-item:hover {
             background-color: #f0f0f0;
         }
+
         .dropdown-item-promote {
             color: #28a745;
         }
+
         .dropdown-item-demote {
             color: #ffc107;
         }
+
         .dropdown-item-delete {
             color: #dc3545;
             border-top: 1px solid #eee;
         }
+
         .dropdown-item-disabled {
             color: #ccc;
             cursor: not-allowed;
         }
+
         .dropdown-item-disabled:hover {
             background-color: white;
         }
+
         .empty-state {
             text-align: center;
-            padding: 1rem 0.5rem;
+            padding: 2rem 1rem;
             color: #666;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
+
         .student-item {
             background-color: #f8f9fa;
-            padding: 0.6rem;
-            margin-bottom: 0.4rem;
-            border-radius: 3px;
-            border-left: 2px solid #667eea;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
         }
+
         .student-item h4 {
-            margin: 0 0 0.15rem 0;
+            margin: 0 0 0.25rem 0;
             color: #333;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
+
         .student-item p {
             margin: 0;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: #666;
         }
+
         .message {
-            padding: 0.6rem;
+            padding: 0.75rem;
             margin-bottom: 0.5rem;
-            border-radius: 3px;
+            border-radius: 4px;
             display: none;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
+
         .message.error {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
             display: block;
         }
+
         .message.success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
             display: block;
         }
+
         .role-badge {
             display: inline-block;
-            padding: 0.12rem 0.35rem;
-            border-radius: 10px;
-            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
             font-weight: 600;
             white-space: nowrap;
         }
+
         .badge-admin {
             background-color: #e7d4f5;
             color: #6f42c1;
         }
+
         .badge-superadmin {
             background-color: #ffc107;
             color: #333;
         }
+
         .badge-user {
             background-color: #d1ecf1;
             color: #0c5460;
         }
+
         .badge-student {
             background-color: #d4edda;
             color: #155724;
         }
+
         .loading {
             text-align: center;
-            padding: 1rem 0.5rem;
+            padding: 2rem;
             color: #666;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
+
         @media (max-width: 1024px) {
             .main-grid {
                 grid-template-columns: 1fr;
-            }
-            .panel {
-                height: 420px;
+                grid-template-rows: 1fr 1fr;
             }
         }
+
         @media (max-width: 768px) {
             .header-section h1 {
-                font-size: 1rem;
-            }
-            .panel {
-                height: 350px;
+                font-size: 1.1rem;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container-wide">
         <div class="header-section">
@@ -297,7 +363,8 @@
             <div class="panel">
                 <h2>👨‍💼 Gestión de Personas</h2>
                 <p>Aquí puedes ascender o degradar a otros usuarios, excepto a ti mismo.</p>
-                <input type="text" id="usersSearchBox" class="search-box" placeholder="🔍 Buscar por nombre o cédula...">
+                <input type="text" id="usersSearchBox" class="search-box"
+                    placeholder="🔍 Buscar por nombre o cédula...">
                 <div id="usersContainer" class="panel-content loading">
                     <p>Cargando usuarios...</p>
                 </div>
@@ -366,15 +433,15 @@
 
         async function loadUsers() {
             const usersContainer = document.getElementById('usersContainer');
-            
+
             try {
                 const response = await fetch('/api/users');
                 if (!response.ok) throw new Error('Error al obtener usuarios');
-                
+
                 allUsers = await response.json();
                 // Filtrar para no mostrar al super-admin actual
                 allUsers = allUsers.filter(u => u.cedula !== currentUserCedula);
-                
+
                 displayUsers(allUsers);
             } catch (error) {
                 console.error('Error:', error);
@@ -384,14 +451,14 @@
 
         async function loadStudents() {
             const studentsContainer = document.getElementById('studentsContainer');
-            
+
             try {
                 const response = await fetch('/api/users');
                 if (!response.ok) throw new Error('Error al obtener usuarios');
-                
+
                 const users = await response.json();
                 allStudents = users.filter(u => u.role === 'estudiante' || u.role === null || u.role === '');
-                
+
                 displayStudents(allStudents);
             } catch (error) {
                 console.error('Error:', error);
@@ -401,7 +468,7 @@
 
         function displayUsers(users) {
             const usersContainer = document.getElementById('usersContainer');
-            
+
             if (users.length === 0) {
                 usersContainer.innerHTML = '<div class="empty-state"><p>📭 No hay usuarios para mostrar</p></div>';
                 return;
@@ -423,7 +490,7 @@
             users.forEach((user, index) => {
                 const roleBadgeClass = getRoleBadgeClass(user.role);
                 const roleName = getRoleName(user.role);
-                
+
                 html += `
                     <tr>
                         <td>${user.nombre || 'N/A'}</td>
@@ -445,7 +512,7 @@
 
             // Agregar event listeners al dropdown
             document.querySelectorAll('.dropdown-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
+                btn.addEventListener('click', function (e) {
                     e.stopPropagation();
                     document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
                     this.nextElementSibling.classList.add('show');
@@ -454,13 +521,13 @@
 
             // Cerrar dropdown al hacer click en item
             document.querySelectorAll('.dropdown-item').forEach(item => {
-                item.addEventListener('click', function() {
+                item.addEventListener('click', function () {
                     this.closest('.dropdown-menu').classList.remove('show');
                 });
             });
 
             // Cerrar dropdown al hacer click fuera
-            document.addEventListener('click', function() {
+            document.addEventListener('click', function () {
                 document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
             });
         }
@@ -504,7 +571,7 @@
 
         function displayStudents(students) {
             const studentsContainer = document.getElementById('studentsContainer');
-            
+
             if (students.length === 0) {
                 studentsContainer.innerHTML = '<div class="empty-state"><p>📭 No hay estudiantes registrados</p></div>';
                 return;
@@ -615,7 +682,7 @@
 
         function filterUsers() {
             const searchValue = document.getElementById('usersSearchBox').value.toLowerCase();
-            const filtered = allUsers.filter(u => 
+            const filtered = allUsers.filter(u =>
                 (u.nombre || '').toLowerCase().includes(searchValue) ||
                 (u.cedula || '').toLowerCase().includes(searchValue)
             );
@@ -640,4 +707,5 @@
         }
     </script>
 </body>
+
 </html>
