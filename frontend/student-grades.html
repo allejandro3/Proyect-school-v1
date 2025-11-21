@@ -82,8 +82,12 @@
 
         .student-grades-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             margin-top: 1rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .student-grades-table th {
@@ -92,12 +96,27 @@
             padding: 1rem;
             text-align: left;
             font-weight: 600;
+            border-bottom: 1px solid #cbd5e0;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .student-grades-table th:last-child {
+            border-right: none;
         }
 
         .student-grades-table td {
-            border: 1px solid #ddd;
+            border-bottom: 1px solid #cbd5e0;
+            border-right: 1px solid #f0f4f8;
             padding: 0.85rem;
             background-color: #fff;
+        }
+
+        .student-grades-table td:last-child {
+            border-right: none;
+        }
+
+        .student-grades-table tr:last-child td {
+            border-bottom: none;
         }
 
         .student-grades-table tbody tr:hover {

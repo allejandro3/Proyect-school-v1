@@ -480,6 +480,47 @@ app.put('/api/student-records/:id', (req, res) => {
     }
 });
 
+// --- RUTA DE RESPALDO (BACKUP) ---
+app.get('/api/backup', (req, res) => {
+    // Helper function to promisify db.query
+    const query = (sql) => {
+        return new Promise((resolve, reject) => {
+            db.query(sql, (err, results) => {
+                if (err) reject(err);
+                else resolve(results);
+            });
+        });
+    };
+
+    Promise.all([
+        query('SELECT * FROM personas'),
+        query('SELECT * FROM estudiantes'),
+        query('SELECT * FROM materias'),
+        query('SELECT * FROM logros')
+    ])
+        .then(([personas, estudiantes, materias, logros]) => {
+            const backupData = {
+                timestamp: new Date().toISOString(),
+                data: {
+                    personas,
+                    estudiantes,
+                    materias,
+                    logros
+                }
+            };
+
+            const fileName = `backup-school-db-${new Date().toISOString().split('T')[0]}.json`;
+
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(backupData, null, 2));
+        })
+        .catch(err => {
+            console.error('Error generando el backup:', err);
+            res.status(500).json({ message: 'Error al generar la copia de seguridad.' });
+        });
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);

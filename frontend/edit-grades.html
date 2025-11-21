@@ -1,78 +1,302 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Notas</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* Premium Global Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #2d3748;
+        }
+
         .button-link {
-            padding: 0.5rem 0.9rem;
+            padding: 0.6rem 1.2rem;
             border: none;
-            border-radius: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 0.9rem;
+            border-radius: 8px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 2px;
-            white-space: nowrap;
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
         .button-link:hover {
+            background: #f0f4ff;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
         .controls {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
             justify-content: flex-end;
             align-items: center;
         }
-        .controls button {
-            margin-right: 0;
-        }
+
         .modify-btn-right {
-            min-width: 180px;
-            max-width: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            min-width: 200px;
         }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 900px; }
-        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        #averageContainer { margin-top: 20px; text-align: right; font-size: 1.2rem; font-weight: bold; }
+
+        .modify-btn-right:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 25px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e0;
+            /* Added outer border */
+        }
+
+        th,
+        td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #cbd5e0;
+            /* Darker inner borders */
+            border-right: 1px solid #f0f4f8;
+            /* Subtle vertical dividers */
+        }
+
+        th:last-child,
+        td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #4a5568;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f7fafc;
+        }
+
+        /* Modal Premium Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 5vh auto;
+            padding: 2.5rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-button {
+            color: #a0aec0;
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .close-button:hover {
+            color: #4a5568;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 2rem;
+            color: #2d3748;
+            font-size: 1.8rem;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #2d3748;
+            transition: all 0.2s;
+            background: #f8fafc;
+            box-sizing: border-box;
+            /* Important for padding */
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-content button[type="submit"] {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal-content button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        #averageContainer {
+            margin-top: 2rem;
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2d3748;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            margin-left: auto;
+            width: fit-content;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Override container width for this page */
+        .container-wide {
+            max-width: 1200px !important;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
+
 <body>
     <div class="container container-wide">
         <h2>Editar Notas</h2>
-    <!-- Eliminado userInfo -->
+        <!-- Eliminado userInfo -->
         <a href="super-admin.html" class="button-link">‹ Volver al Panel</a>
 
         <div class="controls">
             <button id="modifyButton" class="button choice-btn modify-btn-right">Modificar Notas</button>
         </div>
 
-        <table id="gradesTable">
-            <thead>
-                <tr>
-                    <th>Tarjeta de Identidad</th>
-                    <th>Estudiante</th>
-                    <th>Grado</th>
-                    <th>Materia</th>
-                    <th>Logros</th>
-                    <th>I.H</th>
-                    <th>J.V</th>
-                    <th>Desempeño</th>
-                </tr>
-            </thead>
-            <tbody id="gradesTableBody">
-                <!-- Las filas de datos se insertarán aquí dinámicamente -->
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="gradesTable">
+                <thead>
+                    <tr>
+                        <th>Tarjeta de Identidad</th>
+                        <th>Estudiante</th>
+                        <th>Grado</th>
+                        <th>Materia</th>
+                        <th>Logros</th>
+                        <th>I.H</th>
+                        <th>J.V</th>
+                        <th>Desempeño</th>
+                    </tr>
+                </thead>
+                <tbody id="gradesTableBody">
+                    <!-- Las filas de datos se insertarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </div>
 
         <div id="averageContainer">
             <!-- El promedio se insertará aquí -->
@@ -228,7 +452,7 @@
 
             // --- Event Listeners ---
             modifyButton.addEventListener('click', () => {
-                if(recordsData.length === 0) {
+                if (recordsData.length === 0) {
                     alert("No hay registros para modificar.");
                     return;
                 }
@@ -310,4 +534,5 @@
         });
     </script>
 </body>
+
 </html>

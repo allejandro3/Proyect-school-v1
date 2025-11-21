@@ -40,8 +40,8 @@
 
         /* New Grid Layout Styles */
         .container.full-width {
-            max-width: 1100px;
-            /* Much wider */
+            max-width: 95%;
+            /* Much wider to fit 4 cards */
             margin: 0.5rem auto 2rem auto;
             padding: 2rem;
             background: transparent;
@@ -160,6 +160,17 @@
                 <button onclick="window.location.href='manage-users.html'" class="button choice-btn">Gestionar
                     Usuarios</button>
             </div>
+
+            <!-- Card 4: Copia de Seguridad -->
+            <div class="admin-card">
+                <h2>Copia de Seguridad</h2>
+                <p>Descarga una copia de seguridad de la base de datos.</p>
+                <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-database" style="font-size: 3rem; color: #cbd5e0;"></i>
+                </div>
+                <button id="backupButton" class="button choice-btn"
+                    style="background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);">Descargar Backup</button>
+            </div>
         </div>
     </div>
 
@@ -249,6 +260,38 @@
                 sessionStorage.removeItem('userData');
                 window.location.href = 'index.html';
             });
+
+            // --- Lógica de Backup ---
+            const backupBtn = document.getElementById('backupButton');
+            if (backupBtn) {
+                backupBtn.addEventListener('click', async () => {
+                    try {
+                        const response = await fetch('http://localhost:3000/api/backup');
+                        if (!response.ok) throw new Error('Error al generar el backup');
+
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        // Get filename from header or default
+                        const contentDisposition = response.headers.get('Content-Disposition');
+                        let fileName = 'backup.json';
+                        if (contentDisposition) {
+                            const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                            if (match && match[1]) fileName = match[1];
+                        }
+
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    } catch (error) {
+                        console.error('Backup error:', error);
+                        alert('Error al descargar la copia de seguridad: ' + error.message);
+                    }
+                });
+            }
         });
     </script>
 </body>
